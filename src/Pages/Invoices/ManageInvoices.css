@@ -1,0 +1,237 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body {
+  background: #f6f8fa;
+}
+
+.app {
+  display: flex;
+  height: 100vh;
+}
+
+/* Sidebar */
+
+.sidebar {
+  width: 220px;
+  background: #0d3147;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+.logo {
+  padding: 35px 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.logo-icon {
+  font-size: 48px;
+  font-weight: bold;
+  color: #7bd3ff;
+}
+
+.menu {
+  flex: 1;
+  padding-top: 10px;
+}
+
+.menu-item {
+  padding: 16px 24px;
+  cursor: pointer;
+  font-size: 18px;
+  transition: 0.3s;
+}
+
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.menu-item.active {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  margin: 0 12px;
+}
+
+.user {
+  padding: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #dfe6ec;
+  color: #0d3147;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+/* Content */
+
+.content {
+  flex: 1;
+  background: #fff;
+  position: relative;
+}
+
+.page-header {
+  padding: 50px 70px 25px;
+  border-bottom: 1px solid #e3e8ec;
+}
+
+.page-header h1 {
+  color: #1d5679;
+  font-size: 54px;
+  font-weight: 300;
+}
+
+/* Toolbar */
+
+.toolbar {
+  padding: 28px 70px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.left-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.btn {
+  border: none;
+  padding: 14px 24px;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.btn-success {
+  background: #55d13f;
+  color: white;
+  font-weight: 600;
+}
+
+.btn-outline {
+  background: white;
+  border: 1px solid #d6dde3;
+  color: #184d72;
+  font-weight: 600;
+}
+
+.center-nav {
+  display: flex;
+  align-items: center;
+}
+
+.center-nav button {
+  width: 48px;
+  height: 48px;
+  border: 1px solid #d9e1e6;
+  background: white;
+  font-size: 26px;
+  color: #215675;
+  cursor: pointer;
+}
+
+.month-box {
+  width: 240px;
+  height: 48px;
+  border-top: 1px solid #d9e1e6;
+  border-bottom: 1px solid #d9e1e6;
+}
+
+.right-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.date-input {
+  width: 130px;
+  height: 48px;
+  border: 1px solid #d9e1e6;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 15px;
+}
+
+.search-input {
+  width: 180px;
+  height: 48px;
+  border: 2px solid #1ea0d2;
+  border-radius: 25px;
+  padding: 0 20px;
+  font-size: 15px;
+}
+
+/* Empty state */
+
+.invoice-area {
+  height: calc(100vh - 250px);
+  position: relative;
+}
+
+.empty-state {
+  text-align: center;
+  margin-top: 120px;
+}
+
+.empty-state p {
+  color: #184d72;
+  font-size: 20px;
+  margin-bottom: 40px;
+}
+
+.empty-state a {
+  color: #00a4df;
+  text-decoration: underline;
+  font-size: 18px;
+}
+
+.summary {
+  position: absolute;
+  right: 40px;
+  top: 230px;
+  color: #3c6078;
+  font-size: 18px;
+}
+
+/* Footer */
+
+.footer {
+  position: absolute;
+  bottom: 30px;
+  left: 50px;
+  display: flex;
+  gap: 40px;
+  color: #3b647f;
+  font-size: 16px;
+}
+
+.help-btn {
+  position: absolute;
+  right: 30px;
+  bottom: 20px;
+  border: none;
+  background: #0d5678;
+  color: white;
+  padding: 16px 28px;
+  border-radius: 40px;
+  font-size: 20px;
+  cursor: pointer;
+}

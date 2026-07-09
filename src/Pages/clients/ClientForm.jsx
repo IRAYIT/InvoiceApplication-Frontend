@@ -1,201 +1,81 @@
+
 import { useState } from "react";
-import ClientService from "../../services/ClientService.js";
-const ClientForm = () => {
-  const [client, setClient] = useState({
-    clientType: "company",
+import "./ClientForm.css";
 
-    company: "",
-    companyRegNo: "",
-    vatNo: "",
+import GeneralSection from "./GeneralSection";
+import AddressSection from "./AddressSection";
+import ContactSection from "./ContactSection";
+import InvoiceSettingsSection from "./InvoiceSettingsSection";
+import ClientInfoSection from "./ClientInfoSection";
+import RotDeductionSection from "./RotDeductionSection";
 
-    firstName: "",
-    lastName: "",
-    personalIdNo: "",
-
-    email: "",
-    number: "",
-
-    address: {
-      careOf: "",
-      streetAddress: "",
-      zipCode: "",
-      city: "",
-      country: "Sweden",
-    },
-
-    deliveryAddress: {
-      careOf: "",
-      streetAddress: "",
-      zipCode: "",
-      city: "",
-      country: "Sweden",
-    },
-
-    settings: {
-      invoiceDeliveryMethod: "email",
-      emailAttachPdf: false,
-    },
-  });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setClient({
-      ...client,
-      [name]: value,
-    });
-  };
-
-  const handleAddress = (e) => {
-    const { name, value } = e.target;
-
-    setClient({
-      ...client,
-      address: {
-        ...client.address,
-        [name]: value,
-      },
-    });
-  };
-
-  const saveClient = async () => {
-    try {
-      await ClientService.createClient(client);
-      alert("Client Created Successfully");
-    } catch (err) {
-      console.log(err);
-    }
-  };
+function ClientForm() {
+  const [showDetails, setShowDetails] = useState(false);
 
   return (
-    <div className="client-form">
+    <div className="client-form-wrapper">
 
-      <h1>Clients</h1>
+      {/* Toolbar */}
+      <div className="toolbar">
+        <button className="btn-success">New client</button>
 
-      <div className="section">
+        <button className="btn-outline">Print list of clients</button>
 
-        <div className="left">
+        <div className="search-box">
+          <input type="text" placeholder="Search" />
+        </div>
+      </div>
 
-          <h3>General</h3>
+      {/* Main Form Card */}
+      <div className="client-card">
 
-          <div className="radio-group">
-
-            <label>
-              <input
-                type="radio"
-                checked={client.clientType === "company"}
-                onChange={() =>
-                  setClient({ ...client, clientType: "company" })
-                }
-              />
-              Company
-            </label>
-
-            <label>
-              <input
-                type="radio"
-                checked={client.clientType === "person"}
-                onChange={() =>
-                  setClient({ ...client, clientType: "person" })
-                }
-              />
-              Person
-            </label>
-
-          </div>
-
-          {client.clientType === "company" ? (
-            <>
-              <input
-                name="company"
-                placeholder="Company Name"
-                onChange={handleChange}
-              />
-
-              <input
-                name="companyRegNo"
-                placeholder="Company Reg No"
-                onChange={handleChange}
-              />
-
-              <input
-                name="vatNo"
-                placeholder="VAT No"
-                onChange={handleChange}
-              />
-            </>
-          ) : (
-            <>
-              <input
-                name="firstName"
-                placeholder="First Name"
-                onChange={handleChange}
-              />
-
-              <input
-                name="lastName"
-                placeholder="Last Name"
-                onChange={handleChange}
-              />
-
-              <input
-                name="personalIdNo"
-                placeholder="Personal ID"
-                onChange={handleChange}
-              />
-            </>
-          )}
-
-          <input
-            name="email"
-            placeholder="Email"
-            onChange={handleChange}
-          />
+        {/* Top Grid */}
+        <div className="top-grid">
+          <GeneralSection />
+          <AddressSection />
         </div>
 
-        <div className="right">
+        {showDetails && (
+          <>
+            <div className="section-divider" />
 
-          <h3>Billing Address</h3>
+            {/* Middle Grid */}
+            <div className="middle-grid">
+              <ContactSection />
+              <InvoiceSettingsSection />
+            </div>
 
-          <input
-            name="careOf"
-            placeholder="C/O"
-            onChange={handleAddress}
-          />
+            <div className="section-divider" />
 
-          <input
-            name="streetAddress"
-            placeholder="Address"
-            onChange={handleAddress}
-          />
+            {/* Bottom Grid */}
+            <div className="bottom-grid">
+              <ClientInfoSection />
+              <RotDeductionSection />
+            </div>
+          </>
+        )}
 
-          <input
-            name="zipCode"
-            placeholder="Zip Code"
-            onChange={handleAddress}
-          />
+        <div className="section-divider" />
 
-          <input
-            name="city"
-            placeholder="City"
-            onChange={handleAddress}
-          />
+        <div className="detailed-settings-toggle">
+          <button
+            type="button"
+            className="toggle-link"
+            onClick={() => setShowDetails(!showDetails)}
+          >
+            {showDetails ? "Hide detailed settings" : "Show detailed settings"}
+          </button>
+        </div>
 
-          <input
-            name="country"
-            placeholder="Country"
-            onChange={handleAddress}
-          />
-
+        {/* Form Actions */}
+        <div className="form-actions">
+          <button className="btn-success">Create client</button>
+          <button className="btn-outline">Cancel</button>
         </div>
 
       </div>
-
-      <button className="create-btn" onClick={saveClient}>
-        Create Client
-      </button>
     </div>
   );
-};
+}
 
 export default ClientForm;

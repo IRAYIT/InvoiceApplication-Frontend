@@ -1,91 +1,63 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import ClientService from "../../services/ClientService";
 import "./ManageClients.css";
+import ClientForm from "../Clients/ClientForm";
 
-const ManageClients = () => {
+const mockClients = [
+  { id: 1, name: "ABC", city: "", updated: "9 days", email: "abc@gmail.com" },
+];
 
-  const [clients, setClients] = useState([]);
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    loadClients();
-  }, []);
-
-  const loadClients = async () => {
-    const response = await ClientService.getAllClients();
-    setClients(response.data);
-  };
-
-  const deleteClient = async (id) => {
-    await ClientService.deleteClient(id);
-    loadClients();
-  };
-
+function ManageClients() {
   return (
-    <div className="client-list">
+    <div className="clients-page">
+      <h1 className="page-title">Clients</h1>
 
-      <div className="header">
+      <ClientForm />
 
-        <button
-          className="new-btn"
-          onClick={() => navigate("/clients/new")}
-        >
-          New Client
-        </button>
-
-        <input placeholder="Search" />
+      {/* Client list table */}
+      <div className="clients-table-card">
+        <table className="clients-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>NAME</th>
+              <th>CITY</th>
+              <th>UPDATED ↑</th>
+              <th>EMAIL</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {mockClients.map((client) => (
+              <tr key={client.id}>
+                <td>{client.id}</td>
+                <td>
+                  <a href="#client" className="link-cell">{client.name}</a>
+                </td>
+                <td>{client.city}</td>
+                <td>{client.updated}</td>
+                <td>
+                  <a href={`mailto:${client.email}`} className="link-cell">
+                    {client.email}
+                  </a>
+                </td>
+                <td className="row-actions">
+                  <button className="row-menu-btn">⚙ ▾</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
-      <table>
-
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Updated</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-
-        <tbody>
-
-          {clients.map((client) => (
-            <tr key={client.id}>
-              <td>{client.number}</td>
-
-              <td>
-                {client.clientType === "company"
-                  ? client.company
-                  : `${client.firstName} ${client.lastName}`}
-              </td>
-
-              <td>{client.email}</td>
-
-              <td>
-                {new Date(client.updatedAt).toLocaleDateString()}
-              </td>
-
-              <td>
-                <button
-                  onClick={() =>
-                    deleteClient(client.id)
-                  }
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-
-        </tbody>
-
-      </table>
-
+      {/* Footer */}
+      <div className="page-footer">
+        <span>♡ FAQ</span>
+        <span>? Help</span>
+        <span>✉ Email us</span>
+        <span>📞 Ring oss</span>
+        <span>🕒 Mon - Thu 09:00 - 12:00</span>
+      </div>
     </div>
   );
-};
+}
 
 export default ManageClients;

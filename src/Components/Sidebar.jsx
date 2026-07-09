@@ -1,55 +1,88 @@
-import "./Sidebar.css";
+import React from "react";
 import {
-  FaUsers,
-  FaFileInvoice,
-  FaClipboardList,
-  FaShoppingCart,
-  FaBox,
-  FaChartPie,
-  FaCog,
-  FaHome,
-} from "react-icons/fa";
+  FiHome,
+  FiUsers,
+  FiFileText,
+  FiClipboard,
+  FiPackage,
+  FiBox,
+  FiBookOpen,
+  FiPieChart,
+  FiSettings,
+  FiChevronDown,
+} from "react-icons/fi";
+
+import "./Sidebar.css";
 
 const Sidebar = () => {
   return (
     <div className="sidebar">
-      <div className="logo">
-        <h2>F</h2>
+      {/* Logo */}
+      <div className="logo-container">
+        <img
+          src="https://via.placeholder.com/60x60"
+          alt="logo"
+          className="logo"
+        />
       </div>
 
-      <ul>
-        <li>
-          <FaHome /> Overview
-        </li>
+      {/* Menu */}
+      <nav className="menu">
+        <div className="menu-item">
+          <FiHome className="icon" />
+          <span>Overview</span>
+        </div>
 
-        <li className="active">
-          <FaUsers /> Clients
-        </li>
+        <div className="menu-item active">
+          <FiUsers className="icon" />
+          <span>Clients</span>
+        </div>
 
-        <li>
-          <FaFileInvoice /> Invoices
-        </li>
+        <div className="menu-item">
+          <FiFileText className="icon" />
+          <span>Invoices</span>
+        </div>
 
-        <li>
-          <FaClipboardList /> Estimates
-        </li>
+        <div className="menu-item">
+          <FiClipboard className="icon" />
+          <span>Estimates</span>
+        </div>
 
-        <li>
-          <FaShoppingCart /> Orders
-        </li>
+        <div className="menu-item">
+          <FiPackage className="icon" />
+          <span>Orders</span>
+        </div>
 
-        <li>
-          <FaBox /> Products
-        </li>
+        <div className="menu-item">
+          <FiBox className="icon" />
+          <span>Products</span>
+        </div>
 
-        <li>
-          <FaChartPie /> Statistics
-        </li>
+        <div className="menu-item">
+          <FiBookOpen className="icon" />
+          <span>Accounting</span>
+        </div>
 
-        <li>
-          <FaCog /> Settings
-        </li>
-      </ul>
+        <div className="menu-item">
+          <FiPieChart className="icon" />
+          <span>Statistics</span>
+        </div>
+
+        <div className="menu-item">
+          <FiSettings className="icon" />
+          <span>Settings</span>
+        </div>
+      </nav>
+
+      {/* User Profile */}
+      <div className="profile">
+        <div className="avatar">BY</div>
+        <div className="profile-info">
+          <span>Bindu Y</span>
+        </div>
+
+        <FiChevronDown className="dropdown-icon" />
+      </div>
     </div>
   );
 };

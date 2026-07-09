@@ -1,33 +1,99 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 .sidebar {
   width: 230px;
   height: 100vh;
-  background: #0d3046;
-  color: white;
-  position: fixed;
+  background: #0f3044;
+  color: #d7e0e8;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* Logo */
+.logo-container {
+  display: flex;
+  justify-content: center;
+  padding: 28px 0 20px;
 }
 
 .logo {
-  text-align: center;
-  padding: 30px;
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
 }
 
-.logo h2 {
-  color: #6bd34f;
+/* Menu */
+.menu {
+  flex: 1;
+  padding: 10px 12px;
 }
 
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-}
-
-.sidebar li {
-  padding: 18px 25px;
+.menu-item {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: 6px;
+  margin-bottom: 8px;
   cursor: pointer;
+  color: #d4dbe2;
+  transition: 0.25s ease;
 }
 
-.sidebar li:hover,
-.sidebar .active {
-  background: #20445b;
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.menu-item.active {
+  background: #2a4b61;
+  color: #ffffff;
+}
+
+.icon {
+  font-size: 24px;
+  min-width: 24px;
+}
+
+.menu-item span {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+/* Profile */
+.profile {
+  height: 80px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  gap: 12px;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #d7dee5;
+  color: #294559;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-info {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.dropdown-icon {
+  font-size: 18px;
 }

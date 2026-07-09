@@ -1,38 +1,21 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-
 import Sidebar from "./Components/Sidebar";
-import ManageClients from "./Pages/clients/ManageClients";
-import ClientForm from "./Pages/clients/ClientForm";
+
+import ClientForm from "./Pages/Clients/ClientForm";
+import ManageClients from "./Pages/Clients/ManageClients";
+
+import InvoiceForm from "./Pages/Invoices/InvoiceForm";
+import ManageInvoices from "./Pages/Invoices/ManageInvoices";
+
+import "./App.css";
+
 function App() {
   return (
-    <BrowserRouter>
-
+    <div className="app-layout">
       <Sidebar />
 
-      <div className="main-content">
-
-        <Routes>
-
-          <Route
-            path="/"
-            element={<ManageClients />}
-          />
-
-          <Route
-            path="/clients"
-            element={<ManageClients />}
-          />
-
-          <Route
-            path="/clients/new"
-            element={<ClientForm />}
-          />
-
-        </Routes>
-
-      </div>
-
-    </BrowserRouter>
+      {/* Render one page at a time */}
+      <InvoiceForm />
+    </div>
   );
 }
 
