@@ -1,74 +1,424 @@
+/* This file intentionally reuses the CSS custom properties defined in
+   ClientForm.css's :root (--green-600, --teal-600, --line, --text-900,
+   --field-height, --brand-gradient, etc.) rather than declaring its own
+   palette. Because ManageClients.jsx renders <ClientForm />, that
+   stylesheet is always loaded on this page too, so the variables are
+   guaranteed to exist. A local fallback :root is included below in
+   case this file is ever used on its own — same values, so nothing
+   changes either way. */
+:root {
+  --green-600: #4caf50;
+  --green-700: #3d8b40;
+
+  --brand-blue: #3f7fe0;
+  --brand-blue-deep: #2f66c2;
+  --brand-gold: #f5c518;
+  --brand-gold-deep: #e0af0a;
+  --brand-gradient: linear-gradient(
+    120deg,
+    var(--brand-blue) 0%,
+    #6f9de8 35%,
+    #b7c96e 65%,
+    var(--brand-gold) 100%
+  );
+  --brand-gradient-hover: linear-gradient(
+    120deg,
+    var(--brand-blue-deep) 0%,
+    #5686d6 35%,
+    #a3b85a 65%,
+    var(--brand-gold-deep) 100%
+  );
+
+  --teal-600: #1b8aa5;
+  --teal-700: #146e84;
+  --line: #dde1e6;
+  --line-soft: #e8eaee;
+  --surface: #ffffff;
+  --canvas: #f6f7fa;
+  --text-900: #2c3e50;
+  --text-600: #57708a;
+  --text-400: #94a3b3;
+  --field-height: 42px;
+  --shadow-focus: 0 0 0 3px rgba(27, 138, 165, 0.15);
+}
+
+/* NOTE: every rule below is scoped under .clients-page (instead of being
+   a bare .btn-success / .btn-outline / etc.) so it wins the cascade even
+   if another global stylesheet (framework theme, App.css, etc.) also
+   defines classes with these names and loads after this file. */
+
 .clients-page {
-  background: #f5f6f8;
+  background: var(--canvas);
   padding: 32px 40px;
   min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  flex: 1;
+  min-width: 0;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  box-sizing: border-box;
+  color: var(--text-900);
+  overflow-x: hidden;
+}
+
+.clients-page,
+.clients-page *,
+.clients-page *::before,
+.clients-page *::after {
   box-sizing: border-box;
 }
 
-.page-title {
-  color: #3d4a63;
+.clients-page .page-title {
+  color: var(--text-900);
   font-weight: 400;
   font-size: 32px;
   margin: 0 0 24px 0;
 }
 
-.clients-table-card {
-  background: #fff;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+/* ===== Toolbar — same shapes/sizing as the form's toolbar ===== */
+.clients-page .toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.clients-page .search-box {
+  margin-left: auto;
+}
+
+.clients-page .search-box input {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  height: var(--field-height);
+  padding: 0 16px 0 36px;
+  font-size: 15px;
+  width: 240px;
+  outline: none;
+  color: var(--text-900);
+  background: var(--surface) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='15' height='15' fill='none' stroke='%2394a3b3' stroke-width='2' viewBox='0 0 24 24'><circle cx='11' cy='11' r='8'/><line x1='21' y1='21' x2='16.65' y2='16.65'/></svg>") no-repeat 13px center;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.clients-page .search-box input::placeholder {
+  color: var(--text-400);
+}
+
+.clients-page .search-box input:focus {
+  border-color: var(--teal-600);
+  box-shadow: var(--shadow-focus);
+}
+
+/* ===== "New client" button — brand gradient, scoped to .clients-page
+   so it always wins over any other stylesheet's .btn-success (e.g. a
+   framework theme) that might load after this file. ===== */
+.clients-page .btn-success {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--brand-gradient);
+  background-size: 100% 100%;
+  color: #fff;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  height: var(--field-height);
+  padding: 0 22px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  letter-spacing: 0.2px;
+  box-shadow:
+    0 3px 10px -2px rgba(63, 127, 224, 0.45),
+    0 1px 2px rgba(224, 175, 10, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease;
+}
+
+/* Diagonal shine sweep, identical to ClientForm.css's button */
+.clients-page .btn-success::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.45) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-20deg);
+  transition: left 0.65s ease;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.clients-page .btn-success:hover {
+  background: var(--brand-gradient-hover);
+  background-size: 100% 100%;
+  box-shadow:
+    0 8px 22px -4px rgba(63, 127, 224, 0.55),
+    0 2px 8px -1px rgba(224, 175, 10, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.clients-page .btn-success:hover::before {
+  left: 130%;
+}
+
+.clients-page .btn-success:active {
+  transform: scale(0.98) translateY(0);
+  box-shadow:
+    0 1px 3px -1px rgba(63, 127, 224, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.clients-page .btn-success:disabled {
+  background: var(--text-400);
+  background-image: none;
+  border-color: var(--text-400);
+  box-shadow: none;
+  transform: none;
+  cursor: not-allowed;
+}
+
+.clients-page .btn-success:disabled::before {
+  display: none;
+}
+
+/* ===== "Print list of clients" button — brand-blue outline styling,
+   matching ClientForm.css's .btn-outline. ===== */
+.clients-page .btn-outline {
+  background: var(--surface);
+  color: var(--brand-blue-deep);
+  border: 1px solid var(--brand-blue);
+  border-radius: 8px;
+  height: var(--field-height);
+  padding: 0 20px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.clients-page .btn-outline:hover {
+  background: #eef4fd;
+  border-color: var(--brand-blue-deep);
+}
+
+/* ===== "Print list of clients" — same outline family, but with an
+   icon and a bit more personality: a soft brand-gradient tint that
+   sweeps in on hover behind the icon/text, plus a slightly deeper
+   lift, so it doesn't read as flat/plain next to the gradient
+   primary button. ===== */
+.clients-page .btn-print {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  gap: 9px;
+  display: inline-flex;
+  align-items: center;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.clients-page .btn-print svg {
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.clients-page .btn-print::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--brand-gradient);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  z-index: -1;
+}
+
+.clients-page .btn-print:hover {
+  color: #ffffff;
+  border-color: transparent;
+  background: transparent;
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 16px -4px rgba(63, 127, 224, 0.4),
+    0 2px 6px -1px rgba(224, 175, 10, 0.25);
+}
+
+.clients-page .btn-print:hover::before {
+  opacity: 1;
+}
+
+.clients-page .btn-print:hover svg {
+  transform: scale(1.08) rotate(-4deg);
+}
+
+.clients-page .btn-print:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* ===== Content card =====
+   Now a transparent SPACER, not a bordered frame — it stacks the
+   form (when open), the table, and the footer as separate visible
+   cards with real breathing room between them (via `gap`), while
+   still guaranteeing their left/right edges match, since they're
+   all children of the same box with the same width. This replaces
+   the earlier "single seamless card" version, which merged the form
+   and table into one box and made them hard to tell apart as
+   distinct sections. */
+.clients-page .content-card {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
   margin-top: 20px;
+}
+
+/* The form's own wrapper contributes no extra padding/background —
+   its inner .client-card supplies its own full card look below. */
+.clients-page .content-card .client-form-wrapper {
+  padding: 0;
+  background: transparent;
+}
+
+/* The form gets its own complete card again: border, radius, and a
+   subtle shadow so it visually reads as one distinct box, separate
+   from the table beneath it. */
+.clients-page .content-card .client-form-wrapper .client-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(44, 62, 80, 0.06);
+}
+
+/* Table card also gets its own full border/radius back, so it reads
+   as a second, clearly separate box below the form. */
+.clients-page .content-card .clients-table-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 0;
+}
+
+/* Footer becomes its own light card too, rather than being fused to
+   the bottom of the table. */
+.clients-page .content-card .page-footer {
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  margin: 0;
+}
+
+/* ===== Table ===== */
+.clients-page .clients-table-card {
+  background: var(--surface);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   overflow-x: auto;
 }
 
-.clients-table {
+.clients-page .clients-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 14.5px;
 }
 
-.clients-table thead th {
+.clients-page .clients-table thead th {
   text-align: left;
-  color: #9aa0a8;
-  font-weight: 600;
+  color: var(--text-400);
+  font-weight: 700;
   font-size: 12px;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
   padding: 16px 20px;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--canvas);
+  border-bottom: 1px solid var(--line-soft);
+  white-space: nowrap;
 }
 
-.clients-table tbody td {
-  padding: 16px 20px;
-  color: #333;
-  border-bottom: 1px solid #f0f1f3;
+.clients-page .sort-arrow {
+  margin-left: 4px;
+  font-size: 11px;
 }
 
-.link-cell {
-  color: #1f6fb2;
+.clients-page .clients-table tbody tr {
+  transition: background 0.12s ease;
+}
+
+.clients-page .clients-table tbody tr:hover {
+  background: var(--canvas);
+}
+
+.clients-page .clients-table tbody td {
+  padding: 15px 20px;
+  color: var(--text-900);
+  border-bottom: 1px solid var(--line-soft);
+  vertical-align: middle;
+}
+
+.clients-page .clients-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.clients-page .link-cell {
+  color: var(--teal-600);
   text-decoration: none;
+  font-weight: 500;
 }
 
-.link-cell:hover {
+.clients-page .link-cell:hover {
+  color: var(--teal-700);
   text-decoration: underline;
 }
 
-.row-actions {
+.clients-page .row-actions {
   text-align: right;
+  white-space: nowrap;
 }
 
-.row-menu-btn {
+.clients-page .row-menu-btn {
   background: none;
   border: none;
-  color: #9aa0a8;
+  color: var(--text-400);
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 6px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.clients-page .row-menu-btn:hover {
+  background: var(--canvas);
+  color: var(--text-600);
+}
+
+.clients-page .row-menu-btn svg {
+  display: block;
+}
+
+/* ===== Footer ===== */
+.clients-page .page-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 32px;
+  padding: 24px 0;
+  color: var(--text-600);
   font-size: 13px;
 }
 
-.page-footer {
-  display: flex;
-  justify-content: center;
-  gap: 32px;
-  padding: 24px 0;
-  color: #6b7280;
-  font-size: 13px;
+.clients-page .page-footer span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.clients-page .page-footer svg {
+  display: block;
 }

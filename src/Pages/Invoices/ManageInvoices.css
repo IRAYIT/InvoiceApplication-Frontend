@@ -9,6 +9,28 @@ body {
   background: #f6f8fa;
 }
 
+/* ===== Brand colors — shared with InvoiceForm ===== */
+:root {
+  --brand-blue: #3f7fe0;
+  --brand-blue-deep: #2f66c2;
+  --brand-gold: #f5c518;
+  --brand-gold-deep: #e0af0a;
+  --brand-gradient: linear-gradient(
+    120deg,
+    var(--brand-blue) 0%,
+    #6f9de8 35%,
+    #b7c96e 65%,
+    var(--brand-gold) 100%
+  );
+  --brand-gradient-hover: linear-gradient(
+    120deg,
+    var(--brand-blue-deep) 0%,
+    #5686d6 35%,
+    #a3b85a 65%,
+    var(--brand-gold-deep) 100%
+  );
+}
+
 .app {
   display: flex;
   height: 100vh;
@@ -114,23 +136,104 @@ body {
 
 .btn {
   border: none;
-  padding: 14px 24px;
-  border-radius: 4px;
-  font-size: 16px;
+  height: 42px;
+  padding: 0 22px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
+  font-family: inherit;
+  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease, border-color 0.15s ease;
 }
 
-.btn-success {
-  background: #55d13f;
+/* Primary action — brand blue/gold gradient with the same
+   diagonal shine-sweep hover used on the Clients pages, so "New
+   invoice" feels consistent with "New client" / "Save client"
+   elsewhere in the app rather than a flat color swap on hover. */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--brand-gradient);
+  background-size: 100% 100%;
   color: white;
   font-weight: 600;
+  box-shadow:
+    0 3px 10px -2px rgba(63, 127, 224, 0.45),
+    0 1px 2px rgba(224, 175, 10, 0.25);
 }
 
+.btn-primary svg {
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.btn-primary::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.45) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-20deg);
+  transition: left 0.65s ease;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.btn-primary:hover {
+  background: var(--brand-gradient-hover);
+  background-size: 100% 100%;
+  box-shadow:
+    0 8px 22px -4px rgba(63, 127, 224, 0.55),
+    0 2px 8px -1px rgba(224, 175, 10, 0.35);
+  transform: translateY(-2px);
+}
+
+.btn-primary:hover::before {
+  left: 130%;
+}
+
+.btn-primary:hover svg {
+  transform: scale(1.08) rotate(-4deg);
+}
+
+.btn-primary:active {
+  transform: scale(0.98) translateY(0);
+}
+
+/* Secondary action ("Report / export") — flat outline by default,
+   fills with the same brand blue/gold gradient on hover so it picks
+   up the company logo colors, matching the primary button's palette. */
 .btn-outline {
   background: white;
-  border: 1px solid #d6dde3;
-  color: #184d72;
+  border: 1px solid var(--brand-blue);
+  color: var(--brand-blue-deep);
   font-weight: 600;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-outline:hover {
+  background: var(--brand-gradient);
+  border-color: transparent;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow:
+    0 6px 16px -4px rgba(63, 127, 224, 0.4),
+    0 2px 8px -1px rgba(224, 175, 10, 0.3);
+}
+
+.btn-outline:active {
+  transform: translateY(0);
 }
 
 .center-nav {
@@ -146,6 +249,12 @@ body {
   font-size: 26px;
   color: #215675;
   cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.center-nav button:hover {
+  background: #eef4fd;
+  color: var(--brand-blue-deep);
 }
 
 .month-box {
@@ -153,6 +262,12 @@ body {
   height: 48px;
   border-top: 1px solid #d9e1e6;
   border-bottom: 1px solid #d9e1e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: #3fae52;
 }
 
 .right-actions {
@@ -168,23 +283,50 @@ body {
   border-radius: 4px;
   text-align: center;
   font-size: 15px;
+  color: #24485f;
 }
 
 .search-input {
   width: 180px;
   height: 48px;
-  border: 2px solid #1ea0d2;
+  border: 2px solid var(--brand-blue);
   border-radius: 25px;
   padding: 0 20px;
   font-size: 15px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--brand-blue-deep);
+  box-shadow: 0 0 0 3px rgba(63, 127, 224, 0.15);
+}
+
+/* Invoice area */
+
+.invoice-area {
+  padding: 0 70px 60px;
+  min-height: calc(100vh - 320px);
+  position: relative;
+}
+
+/* Loading / error states */
+
+.loading-state,
+.error-state {
+  padding: 60px 70px;
+  font-size: 16px;
+}
+
+.loading-state {
+  color: #6c8494;
+}
+
+.error-state {
+  color: #b23838;
 }
 
 /* Empty state */
-
-.invoice-area {
-  height: calc(100vh - 250px);
-  position: relative;
-}
 
 .empty-state {
   text-align: center;
@@ -203,12 +345,213 @@ body {
   font-size: 18px;
 }
 
-.summary {
-  position: absolute;
-  right: 40px;
-  top: 230px;
-  color: #3c6078;
+/* Status groups (Overdue / Unpaid / Paid / Draft) */
+
+.status-group {
+  margin-bottom: 40px;
+}
+
+.status-summary {
+  padding-bottom: 12px;
+  border-bottom: 3px solid transparent;
+  margin-bottom: 0;
+}
+
+.status-label {
   font-size: 18px;
+  font-weight: 700;
+}
+
+.status-amount {
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.status-vat {
+  font-size: 15px;
+}
+
+.status-overdue .status-label,
+.status-overdue .status-amount,
+.status-overdue .status-vat {
+  color: #e2574c;
+}
+.status-overdue .status-summary {
+  border-bottom-color: #e2574c;
+}
+.status-overdue .status-table-header {
+  background: #fdece9;
+  color: #e2574c;
+}
+
+.status-unpaid .status-label,
+.status-unpaid .status-amount,
+.status-unpaid .status-vat {
+  color: #ed9d1a;
+}
+.status-unpaid .status-summary {
+  border-bottom-color: #ed9d1a;
+}
+.status-unpaid .status-table-header {
+  background: #fdf3df;
+  color: #ed9d1a;
+}
+
+.status-paid .status-label,
+.status-paid .status-amount,
+.status-paid .status-vat {
+  color: #2fae55;
+}
+.status-paid .status-summary {
+  border-bottom-color: #2fae55;
+}
+.status-paid .status-table-header {
+  background: #e9f9ee;
+  color: #2fae55;
+}
+
+.status-draft .status-label,
+.status-draft .status-amount,
+.status-draft .status-vat {
+  color: #6c8494;
+}
+.status-draft .status-summary {
+  border-bottom-color: #b7c4cc;
+}
+.status-draft .status-table-header {
+  background: #f3f6f7;
+  color: #6c8494;
+}
+
+.status-table {
+  margin-top: 0;
+}
+
+.status-table-header,
+.status-table-row {
+  display: grid;
+  grid-template-columns: 110px 2fr 1.2fr 1.2fr 80px 80px 90px 60px;
+  align-items: center;
+  padding: 14px 16px;
+  font-size: 14px;
+}
+
+.status-table-header > div:first-child,
+.status-table-row > div:first-child {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+}
+
+.status-table-header {
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.auto-col {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-table-row {
+  border-bottom: 1px solid #eef2f4;
+  color: #24485f;
+  transition: background 0.15s ease;
+}
+
+.status-table-row:hover {
+  background: #f8fafc;
+}
+
+.status-table-row:last-child {
+  border-bottom: none;
+}
+
+.status-table-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--brand-blue);
+}
+
+.client-link {
+  color: #00a4df;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.client-link:hover {
+  text-decoration: underline;
+}
+
+.row-menu {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.row-menu-btn {
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: #9db2bd;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 4px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.row-menu-btn:hover {
+  color: var(--brand-blue-deep);
+  background: #eef4fd;
+}
+
+.row-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: #fff;
+  border: 1px solid #dde4e7;
+  border-radius: 6px;
+  box-shadow: 0 12px 28px -8px rgba(20, 40, 60, 0.25);
+  min-width: 140px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.row-menu-dropdown button {
+  border: none;
+  background: #fff;
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #24485f;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.row-menu-dropdown button:hover {
+  background: #eef4fd;
+}
+
+.row-menu-danger {
+  color: #b23838 !important;
+}
+
+/* Totals summary */
+
+.summary {
+  margin-top: 20px;
+  text-align: right;
+  color: #3c6078;
+  font-size: 13.5px;
 }
 
 /* Footer */
@@ -224,14 +567,33 @@ body {
 }
 
 .help-btn {
-  position: absolute;
+  position: fixed;
   right: 30px;
   bottom: 20px;
   border: none;
-  background: #0d5678;
+  background: var(--brand-gradient);
   color: white;
   padding: 16px 28px;
   border-radius: 40px;
   font-size: 20px;
   cursor: pointer;
+  box-shadow:
+    0 6px 16px -4px rgba(63, 127, 224, 0.45),
+    0 2px 8px -1px rgba(224, 175, 10, 0.3);
+  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease;
+}
+
+.help-btn:hover {
+  background: var(--brand-gradient-hover);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 1100px) {
+  .status-table {
+    overflow-x: auto;
+  }
+  .status-table-header,
+  .status-table-row {
+    min-width: 760px;
+  }
 }

@@ -12,66 +12,50 @@ import {
   FiChevronDown,
 } from "react-icons/fi";
 
+import logo from "../assets/images/i-ray-logo.png";
 import "./Sidebar.css";
 
-const Sidebar = () => {
+const menuItems = [
+  { key: "overview", label: "Overview", icon: FiHome },
+  { key: "clients", label: "Clients", icon: FiUsers },
+  { key: "invoices", label: "Invoices", icon: FiFileText },
+  { key: "estimates", label: "Estimates", icon: FiClipboard },
+  { key: "orders", label: "Orders", icon: FiPackage },
+  { key: "products", label: "Products", icon: FiBox },
+  { key: "accounting", label: "Accounting", icon: FiBookOpen },
+  { key: "statistics", label: "Statistics", icon: FiPieChart },
+  { key: "settings", label: "Settings", icon: FiSettings },
+];
+
+const availablePages = ["clients", "invoices", "products"];
+
+const Sidebar = ({ activePage, onNavigate }) => {
   return (
     <div className="sidebar">
-      {/* Logo */}
-      <div className="logo-container">
-        <img
-          src="https://via.placeholder.com/60x60"
-          alt="logo"
-          className="logo"
-        />
-      </div>
-
+     {/* Logo */}
+<div className="logo-container">
+  <img src={logo} alt="i-ray IT Solutions" className="logo" />
+  <div className="logo-accent-line" />
+</div>
       {/* Menu */}
       <nav className="menu">
-        <div className="menu-item">
-          <FiHome className="icon" />
-          <span>Overview</span>
-        </div>
+        {menuItems.map(({ key, label, icon: Icon }) => {
+          const isActive = activePage === key;
+          const isClickable = availablePages.includes(key);
 
-        <div className="menu-item active">
-          <FiUsers className="icon" />
-          <span>Clients</span>
-        </div>
-
-        <div className="menu-item">
-          <FiFileText className="icon" />
-          <span>Invoices</span>
-        </div>
-
-        <div className="menu-item">
-          <FiClipboard className="icon" />
-          <span>Estimates</span>
-        </div>
-
-        <div className="menu-item">
-          <FiPackage className="icon" />
-          <span>Orders</span>
-        </div>
-
-        <div className="menu-item">
-          <FiBox className="icon" />
-          <span>Products</span>
-        </div>
-
-        <div className="menu-item">
-          <FiBookOpen className="icon" />
-          <span>Accounting</span>
-        </div>
-
-        <div className="menu-item">
-          <FiPieChart className="icon" />
-          <span>Statistics</span>
-        </div>
-
-        <div className="menu-item">
-          <FiSettings className="icon" />
-          <span>Settings</span>
-        </div>
+          return (
+            <div
+              key={key}
+              className={`menu-item ${isActive ? "active" : ""} ${
+                isClickable ? "" : "disabled"
+              }`}
+              onClick={() => isClickable && onNavigate(key)}
+            >
+              <Icon className="icon" />
+              <span>{label}</span>
+            </div>
+          );
+        })}
       </nav>
 
       {/* User Profile */}

@@ -1,9 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
 :root {
-  --green-600: #4caf50;
-  --green-700: #3d8b40;
-
   --brand-blue: #3f7fe0;
   --brand-blue-deep: #2f66c2;
   --brand-gold: #f5c518;
@@ -25,7 +22,6 @@
 
   --teal-600: #1b8aa5;
   --teal-700: #146e84;
-  --teal-50: #eaf6f9;
 
   --line: #dde1e6;
   --line-soft: #e8eaee;
@@ -46,7 +42,12 @@
   box-sizing: border-box;
 }
 
-.client-form-wrapper {
+/* ===== Wrapper — same structure as ClientForm.css's .client-form-wrapper.
+   No side padding: the page around this component already supplies the
+   page's own horizontal padding, so adding more here would push this
+   card out of alignment with other cards on the page (same fix we
+   applied to ClientForm.css earlier). ===== */
+.ecf-wrapper {
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -56,27 +57,21 @@
   color: var(--text-900);
   -webkit-font-smoothing: antialiased;
   background: transparent;
-  /* No left/right padding here — .clients-page already supplies the
-     page's horizontal padding. Adding more here was pushing the
-     .client-card narrower than .clients-table-card below it, so the
-     two cards didn't line up edge-to-edge. Top/bottom spacing kept
-     so the form still has breathing room from the toolbar above and
-     the table below. */
-  padding: 20px 0 20px 0;
+  padding: 20px 0;
 }
 
 /* ===== Toolbar ===== */
-.client-form-wrapper .toolbar {
+.ecf-wrapper .toolbar {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.client-form-wrapper .search-box {
+.ecf-wrapper .search-box {
   margin-left: auto;
 }
 
-.client-form-wrapper .search-box input {
+.ecf-wrapper .search-box input {
   border: 1px solid var(--line);
   border-radius: 8px;
   height: var(--field-height);
@@ -89,23 +84,21 @@
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.client-form-wrapper .search-box input::placeholder {
+.ecf-wrapper .search-box input::placeholder {
   color: var(--text-400);
 }
 
-.client-form-wrapper .search-box input:focus {
+.ecf-wrapper .search-box input:focus {
   border-color: var(--teal-600);
   box-shadow: var(--shadow-focus);
 }
 
-/* ===== Buttons ===== */
-.client-form-wrapper .btn-success {
+/* ===== Buttons — identical to ClientForm.css's brand-gradient
+   primary button and brand-blue outline button. ===== */
+.ecf-wrapper .btn-success {
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  /* Full gradient always visible at 100% size — blue on the left,
-     gold on the right, exactly matching the logo. Nothing is
-     cropped off. */
   background: var(--brand-gradient);
   background-size: 100% 100%;
   color: #fff;
@@ -124,8 +117,7 @@
   transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease;
 }
 
-/* Diagonal shine sweep — sits above the gradient, animates across on hover */
-.client-form-wrapper .btn-success::before {
+.ecf-wrapper .btn-success::before {
   content: "";
   position: absolute;
   top: 0;
@@ -144,9 +136,7 @@
   pointer-events: none;
 }
 
-.client-form-wrapper .btn-success:hover {
-  /* Same full-width gradient, just the deeper hover variant —
-     blue and gold both stay fully visible, just richer. */
+.ecf-wrapper .btn-success:hover {
   background: var(--brand-gradient-hover);
   background-size: 100% 100%;
   box-shadow:
@@ -156,18 +146,18 @@
   transform: translateY(-2px);
 }
 
-.client-form-wrapper .btn-success:hover::before {
+.ecf-wrapper .btn-success:hover::before {
   left: 130%;
 }
 
-.client-form-wrapper .btn-success:active {
+.ecf-wrapper .btn-success:active {
   transform: scale(0.98) translateY(0);
   box-shadow:
     0 1px 3px -1px rgba(63, 127, 224, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
-.client-form-wrapper .btn-success:disabled {
+.ecf-wrapper .btn-success:disabled {
   background: var(--text-400);
   background-image: none;
   box-shadow: none;
@@ -175,11 +165,11 @@
   cursor: not-allowed;
 }
 
-.client-form-wrapper .btn-success:disabled::before {
+.ecf-wrapper .btn-success:disabled::before {
   display: none;
 }
 
-.client-form-wrapper .btn-outline {
+.ecf-wrapper .btn-outline {
   background: var(--surface);
   color: var(--brand-blue-deep);
   border: 1px solid var(--brand-blue);
@@ -192,13 +182,21 @@
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
-.client-form-wrapper .btn-outline:hover {
+.ecf-wrapper .btn-outline:hover {
   background: #eef4fd;
   border-color: var(--brand-blue-deep);
 }
 
-/* ===== Card ===== */
-.client-form-wrapper .client-card {
+.ecf-wrapper .btn-outline:disabled {
+  color: var(--text-400);
+  border-color: var(--line);
+  background: var(--surface);
+  cursor: not-allowed;
+}
+
+/* ===== Card — same flat bordered surface as ClientForm.css's
+   .client-card (no gradient top bar, no tinted glow shadow). ===== */
+.ecf-wrapper .ecf-card {
   position: relative;
   background: var(--surface);
   border-radius: 10px;
@@ -206,18 +204,18 @@
   padding: 32px 36px 28px;
 }
 
-.client-form-wrapper .top-grid,
-.client-form-wrapper .middle-grid,
-.client-form-wrapper .bottom-grid {
+.ecf-wrapper .top-grid,
+.ecf-wrapper .middle-grid,
+.ecf-wrapper .bottom-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 56px;
   position: relative;
 }
 
-.client-form-wrapper .top-grid::before,
-.client-form-wrapper .middle-grid::before,
-.client-form-wrapper .bottom-grid::before {
+.ecf-wrapper .top-grid::before,
+.ecf-wrapper .middle-grid::before,
+.ecf-wrapper .bottom-grid::before {
   content: "";
   position: absolute;
   top: 0;
@@ -227,18 +225,18 @@
   background: var(--line-soft);
 }
 
-.client-form-wrapper .section-divider {
+.ecf-wrapper .section-divider {
   height: 1px;
   background: var(--line-soft);
   margin: 28px 0;
 }
 
-.client-form-wrapper .detailed-settings-toggle {
+.ecf-wrapper .detailed-settings-toggle {
   display: flex;
   justify-content: center;
 }
 
-.client-form-wrapper .toggle-link {
+.ecf-wrapper .toggle-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -251,26 +249,11 @@
   padding: 6px 4px;
 }
 
-.client-form-wrapper .toggle-link:hover {
+.ecf-wrapper .toggle-link:hover {
   text-decoration: underline;
 }
 
-.client-form-wrapper .toggle-link .chevron {
-  width: 8px;
-  height: 8px;
-  border-right: 1.5px solid currentColor;
-  border-bottom: 1.5px solid currentColor;
-  transform: rotate(45deg);
-  transition: transform 0.15s ease;
-  margin-top: -3px;
-}
-
-.client-form-wrapper .toggle-link.is-open .chevron {
-  transform: rotate(-135deg);
-  margin-top: 3px;
-}
-
-.client-form-wrapper .form-actions {
+.ecf-wrapper .form-actions {
   display: flex;
   gap: 10px;
   margin-top: 26px;
@@ -279,38 +262,27 @@
 }
 
 @media (max-width: 900px) {
-  .client-form-wrapper .top-grid,
-  .client-form-wrapper .middle-grid,
-  .client-form-wrapper .bottom-grid {
+  .ecf-wrapper .top-grid,
+  .ecf-wrapper .middle-grid,
+  .ecf-wrapper .bottom-grid {
     grid-template-columns: 1fr;
     gap: 32px;
   }
 
-  .client-form-wrapper .top-grid::before,
-  .client-form-wrapper .middle-grid::before,
-  .client-form-wrapper .bottom-grid::before {
+  .ecf-wrapper .top-grid::before,
+  .ecf-wrapper .middle-grid::before,
+  .ecf-wrapper .bottom-grid::before {
     display: none;
   }
 
-  .client-form-wrapper .client-card {
+  .ecf-wrapper .ecf-card {
     padding: 24px 20px;
   }
 }
 
-/* ===== Section titles — diagonal blue-to-gold split, echoing the
-   logo mark itself (which is split the same way). A hard-stop
-   gradient (blue then gold, no blending) clipped to the text glyphs,
-   so the letters carry the brand split directly rather than sitting
-   on a colored background. Font-weight bumped up since a two-tone
-   split reads better on heavier strokes.
-
-   NOTE: color is set to `transparent` (not a fallback solid color) —
-   an opaque `color` value paints over the clipped gradient in some
-   browsers and silently hides it. `!important` is used because this
-   project has another stylesheet that loads after this one and wins
-   on plain .section-title rules (same issue we hit earlier with
-   .btn-success / .radio-option), so this guards against that. */
-.client-form-wrapper .section-title {
+/* ===== Section titles — same diagonal blue-to-gold split as
+   ClientForm.css, clipped to the text itself (not an icon badge). ===== */
+.ecf-wrapper .section-title {
   background: linear-gradient(
     135deg,
     var(--brand-blue) 0%,
@@ -328,20 +300,20 @@
   display: inline-block;
 }
 
-.client-form-wrapper .section-block {
+.ecf-wrapper .section-block {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
 /* ===== Fields ===== */
-.client-form-wrapper .field {
+.ecf-wrapper .field {
   display: flex;
   flex-direction: column;
   gap: 7px;
 }
 
-.client-form-wrapper .field label {
+.ecf-wrapper .field label {
   font-size: 14px;
   font-weight: 400;
   color: var(--text-600);
@@ -350,15 +322,15 @@
   gap: 6px;
 }
 
-.client-form-wrapper .field label .required {
+.ecf-wrapper .field label .required {
   color: var(--danger);
 }
 
-.client-form-wrapper .field input[type="text"],
-.client-form-wrapper .field input[type="email"],
-.client-form-wrapper .field input[type="number"],
-.client-form-wrapper .field input[type="tel"],
-.client-form-wrapper .field select {
+.ecf-wrapper .field input[type="text"],
+.ecf-wrapper .field input[type="email"],
+.ecf-wrapper .field input[type="number"],
+.ecf-wrapper .field input[type="tel"],
+.ecf-wrapper .field select {
   height: var(--field-height);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -376,7 +348,7 @@
   -moz-appearance: none;
 }
 
-.client-form-wrapper .field select {
+.ecf-wrapper .field select {
   display: flex;
   align-items: center;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='11' height='15' fill='none' stroke='%2357708a' stroke-width='1.6' viewBox='0 0 10 14'><path d='M1 5l4-4 4 4'/><path d='M1 9l4 4 4-4'/></svg>");
@@ -385,24 +357,24 @@
   padding-right: 34px;
 }
 
-.client-form-wrapper .field input:hover,
-.client-form-wrapper .field select:hover {
+.ecf-wrapper .field input:hover,
+.ecf-wrapper .field select:hover {
   border-color: #c9cfd6;
 }
 
-.client-form-wrapper .field input:focus,
-.client-form-wrapper .field select:focus {
+.ecf-wrapper .field input:focus,
+.ecf-wrapper .field select:focus {
   border-color: var(--teal-600);
   box-shadow: var(--shadow-focus);
 }
 
-.client-form-wrapper .field-row {
+.ecf-wrapper .field-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 18px;
 }
 
-.client-form-wrapper .tooltip-icon {
+.ecf-wrapper .tooltip-icon {
   width: 16px;
   height: 16px;
   border-radius: 50%;
@@ -418,81 +390,57 @@
   flex-shrink: 0;
 }
 
-/* =========================================================
-   Radio group — redesigned as clean rounded-rectangle chips.
-   No pill/oval shapes: border-radius matches the same 8-10px
-   used on inputs and buttons elsewhere, so the whole form
-   feels like one system. Each chip carries a small custom
-   radio dot plus label; the whole chip is clickable and the
-   selected state fills solid with the accent color.
-   ========================================================= */
-.client-form-wrapper .radio-group {
+/* ===== Radio group — same plain rounded-dot chips as ClientForm.css
+   (not pill/oval, not gradient-filled when checked). ===== */
+.ecf-wrapper .radio-group {
   display: flex;
   align-items: center;
   gap: 22px;
   flex-wrap: wrap;
 }
 
-.client-form-wrapper .radio-option {
-  display: inline-flex !important;
+.ecf-wrapper .radio-option {
+  display: inline-flex;
   align-items: center;
   gap: 8px;
   font-size: 15px;
   font-weight: 400;
-  color: var(--text-900) !important;
+  color: var(--text-900);
   cursor: pointer;
   user-select: none;
-  /* Neutralize the competing pill/chip styling coming from the
-     other stylesheet (border, padding, border-radius, gradient) */
-  border: none !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  background: none !important;
-  box-shadow: none !important;
 }
 
-/* The other stylesheet also has a `:has(input:checked)` rule that
-   turns the whole label into a gradient pill — cancel it out too */
-.client-form-wrapper .radio-option:has(input:checked) {
-  border: none !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  background: none !important;
-  box-shadow: none !important;
-  color: var(--text-900) !important;
-}
-
-.client-form-wrapper .radio-option input[type="radio"] {
-  appearance: none !important;
-  -webkit-appearance: none !important;
-  width: 14px !important;
-  height: 14px !important;
-  border-radius: 4px !important;
-  border: 1.5px solid #c7ccd1 !important;
-  background: #fff !important;
+.ecf-wrapper .radio-option input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  border: 1.5px solid #c7ccd1;
+  background: #fff;
   position: relative;
   cursor: pointer;
   flex-shrink: 0;
-  margin: 0 !important;
-  padding: 0 !important;
+  margin: 0;
+  padding: 0;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
-.client-form-wrapper .radio-option input[type="radio"]:hover {
-  border-color: var(--text-400) !important;
+.ecf-wrapper .radio-option input[type="radio"]:hover {
+  border-color: var(--text-400);
 }
 
-.client-form-wrapper .radio-option input[type="radio"]:focus-visible {
+.ecf-wrapper .radio-option input[type="radio"]:focus-visible {
   outline: 2px solid var(--teal-600);
   outline-offset: 2px;
 }
 
-.client-form-wrapper .radio-option input[type="radio"]:checked {
-  border-color: var(--teal-600) !important;
-  background: var(--teal-600) !important;
+.ecf-wrapper .radio-option input[type="radio"]:checked {
+  border-color: var(--teal-600);
+  background: var(--teal-600);
 }
 
-.client-form-wrapper .radio-option input[type="radio"]:checked::after {
+.ecf-wrapper .radio-option input[type="radio"]:checked::after {
   content: "";
   position: absolute;
   top: 50%;
@@ -504,10 +452,8 @@
   background: #fff;
 }
 
-/* Plain square checkbox — shared by the "always attach PDF" row and
-   every settings-row toggle below */
-.client-form-wrapper .checkbox-row,
-.client-form-wrapper .setting-checkbox {
+/* ===== Checkbox row ===== */
+.ecf-wrapper .checkbox-row {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -516,8 +462,7 @@
   cursor: pointer;
 }
 
-.client-form-wrapper .checkbox-row input[type="checkbox"],
-.client-form-wrapper .setting-checkbox input[type="checkbox"] {
+.ecf-wrapper .checkbox-row input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
   width: 19px;
@@ -532,25 +477,21 @@
   transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
 
-.client-form-wrapper .checkbox-row input[type="checkbox"]:hover,
-.client-form-wrapper .setting-checkbox input[type="checkbox"]:hover {
+.ecf-wrapper .checkbox-row input[type="checkbox"]:hover {
   border-color: var(--text-400);
 }
 
-.client-form-wrapper .checkbox-row input[type="checkbox"]:focus-visible,
-.client-form-wrapper .setting-checkbox input[type="checkbox"]:focus-visible {
+.ecf-wrapper .checkbox-row input[type="checkbox"]:focus-visible {
   border-color: var(--teal-600);
   box-shadow: var(--shadow-focus);
 }
 
-.client-form-wrapper .checkbox-row input[type="checkbox"]:checked,
-.client-form-wrapper .setting-checkbox input[type="checkbox"]:checked {
+.ecf-wrapper .checkbox-row input[type="checkbox"]:checked {
   background: var(--teal-600);
   border-color: var(--teal-600);
 }
 
-.client-form-wrapper .checkbox-row input[type="checkbox"]:checked::after,
-.client-form-wrapper .setting-checkbox input[type="checkbox"]:checked::after {
+.ecf-wrapper .checkbox-row input[type="checkbox"]:checked::after {
   content: "";
   position: absolute;
   top: 3px;
@@ -563,10 +504,10 @@
 }
 
 /* ===== Invoice-settings rows =====
-   Layout: [checkbox + label] .......... [input/select + unit]
-   The input is greyed out and disabled until its row's checkbox is
-   ticked — matching the reference's "override this default" pattern. */
-.client-form-wrapper .setting-row {
+   EditClientForm shows the current values directly (no "enable
+   override" checkbox like the New Client form has) — just a plain
+   label on the left and the input/select on the right. */
+.ecf-wrapper .setting-row {
   display: grid;
   grid-template-columns: 1fr 170px;
   align-items: center;
@@ -574,14 +515,20 @@
   padding: 4px 0;
 }
 
-.client-form-wrapper .setting-input-wrap {
+.ecf-wrapper .setting-row .setting-label {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-600);
+}
+
+.ecf-wrapper .setting-input-wrap {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.client-form-wrapper .setting-input-wrap input,
-.client-form-wrapper .setting-input-wrap select {
+.ecf-wrapper .setting-input-wrap input,
+.ecf-wrapper .setting-input-wrap select {
   height: 40px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -596,40 +543,34 @@
   -webkit-appearance: none;
 }
 
-.client-form-wrapper .setting-input-wrap select {
+.ecf-wrapper .setting-input-wrap select {
   display: flex;
   align-items: center;
 }
 
-.client-form-wrapper .setting-input-wrap input:focus,
-.client-form-wrapper .setting-input-wrap select:focus {
+.ecf-wrapper .setting-input-wrap input:focus,
+.ecf-wrapper .setting-input-wrap select:focus {
   outline: none;
   border-color: var(--teal-600);
   box-shadow: var(--shadow-focus);
 }
 
-.client-form-wrapper .setting-input-wrap input:disabled,
-.client-form-wrapper .setting-input-wrap select:disabled {
-  background: var(--canvas);
-  color: var(--text-400);
-  cursor: not-allowed;
-}
-
-.client-form-wrapper .setting-input-wrap .unit {
+.ecf-wrapper .setting-input-wrap .unit {
   font-size: 13px;
   color: var(--text-400);
   white-space: nowrap;
 }
 
-/* ===== Address tabs — plain underline tabs ===== */
-.client-form-wrapper .address-tabs {
+/* ===== Address tabs — plain underline tabs, same as ClientForm.css
+   (no icon masks). ===== */
+.ecf-wrapper .address-tabs {
   display: flex;
   gap: 28px;
   border-bottom: 1px solid var(--line-soft);
   margin-bottom: 22px;
 }
 
-.client-form-wrapper .address-tab {
+.ecf-wrapper .address-tab {
   position: relative;
   background: none;
   border: none;
@@ -642,11 +583,11 @@
   transition: color 0.15s ease;
 }
 
-.client-form-wrapper .address-tab:hover {
+.ecf-wrapper .address-tab:hover {
   color: var(--text-900);
 }
 
-.client-form-wrapper .address-tab::after {
+.ecf-wrapper .address-tab::after {
   content: "";
   position: absolute;
   left: 0;
@@ -659,25 +600,75 @@
   transition: transform 0.15s ease;
 }
 
-.client-form-wrapper .address-tab.active {
+.ecf-wrapper .address-tab.active {
   color: var(--text-900);
 }
 
-.client-form-wrapper .address-tab.active::after {
+.ecf-wrapper .address-tab.active::after {
   transform: scaleX(1);
 }
 
 /* ===== Focus visibility ===== */
-.client-form-wrapper .btn-success:focus-visible,
-.client-form-wrapper .btn-outline:focus-visible,
-.client-form-wrapper .toggle-link:focus-visible,
-.client-form-wrapper .address-tab:focus-visible {
+.ecf-wrapper .btn-success:focus-visible,
+.ecf-wrapper .btn-outline:focus-visible,
+.ecf-wrapper .toggle-link:focus-visible,
+.ecf-wrapper .address-tab:focus-visible {
   outline: 2px solid var(--teal-600);
   outline-offset: 2px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  * {
-    transition-duration: 0.01ms !important;
+/* ===== Loading / error state card — same flat bordered card, brand
+   teal spinner instead of indigo. ===== */
+.ecf-wrapper .ecf-state-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 220px;
+  text-align: center;
+}
+
+.ecf-wrapper .ecf-state-text {
+  color: var(--text-600);
+  font-size: 14.5px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.ecf-wrapper .ecf-spinner {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 3px solid var(--line-soft);
+  border-top-color: var(--teal-600);
+  animation: ecf-spin 0.7s linear infinite;
+}
+
+@keyframes ecf-spin {
+  to {
+    transform: rotate(360deg);
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ecf-wrapper .ecf-spinner {
+    animation: none;
+  }
+}
+
+/* ===== Error message ===== */
+.ecf-wrapper .ecf-error {
+  color: var(--danger);
+  background: #fdeceb;
+  border: 1px solid #f3cdc9;
+  border-radius: 8px;
+  padding: 10px 16px;
+  margin-bottom: 20px;
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.ecf-wrapper .ecf-state-card .ecf-error {
+  margin-bottom: 4px;
 }

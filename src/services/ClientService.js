@@ -1,8 +1,7 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8080/api/clients";
+const API_BASE_URL = "http://localhost:8080/api/v1/clients";
 
-// Reusable axios instance so headers/config stay consistent across calls
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -11,10 +10,9 @@ const apiClient = axios.create({
 });
 
 const ClientService = {
-  // GET /api/clients - fetch all clients
   getAllClients: async () => {
     try {
-      const response = await apiClient.get("/");
+      const response = await apiClient.get("");
       return response.data;
     } catch (error) {
       console.error("Error fetching clients:", error);
@@ -22,7 +20,6 @@ const ClientService = {
     }
   },
 
-  // GET /api/clients/:id - fetch a single client by id
   getClientById: async (id) => {
     try {
       const response = await apiClient.get(`/${id}`);
@@ -33,10 +30,9 @@ const ClientService = {
     }
   },
 
-  // POST /api/clients - create a new client
   createClient: async (clientData) => {
     try {
-      const response = await apiClient.post("/", clientData);
+      const response = await apiClient.post("", clientData);
       return response.data;
     } catch (error) {
       console.error("Error creating client:", error);
@@ -44,7 +40,6 @@ const ClientService = {
     }
   },
 
-  // PUT /api/clients/:id - update an existing client
   updateClient: async (id, clientData) => {
     try {
       const response = await apiClient.put(`/${id}`, clientData);
@@ -55,7 +50,6 @@ const ClientService = {
     }
   },
 
-  // DELETE /api/clients/:id - delete a client
   deleteClient: async (id) => {
     try {
       const response = await apiClient.delete(`/${id}`);

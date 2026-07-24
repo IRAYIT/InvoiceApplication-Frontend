@@ -1,0 +1,424 @@
+/* Reuses the same brand tokens defined globally in ManageInvoices.css
+   (--brand-blue, --brand-gold, --brand-gradient, etc.). Redeclared here
+   too so this file works standalone if loaded on its own. */
+:root {
+  --brand-blue: #3f7fe0;
+  --brand-blue-deep: #2f66c2;
+  --brand-gold: #f5c518;
+  --brand-gold-deep: #e0af0a;
+  --brand-gradient: linear-gradient(
+    120deg,
+    var(--brand-blue) 0%,
+    #6f9de8 35%,
+    #b7c96e 65%,
+    var(--brand-gold) 100%
+  );
+  --brand-gradient-hover: linear-gradient(
+    120deg,
+    var(--brand-blue-deep) 0%,
+    #5686d6 35%,
+    #a3b85a 65%,
+    var(--brand-gold-deep) 100%
+  );
+}
+
+.content {
+  flex: 1;
+  background: #fff;
+  position: relative;
+}
+
+.page-header {
+  padding: 50px 70px 25px;
+  border-bottom: 1px solid #e3e8ec;
+}
+
+.page-header h1 {
+  color: #1d5679;
+  font-size: 54px;
+  font-weight: 300;
+}
+
+.loading-state,
+.error-state {
+  padding: 24px 70px;
+  font-size: 15px;
+}
+
+.loading-state {
+  color: #6c8494;
+}
+
+.error-state {
+  color: #b23838;
+}
+
+/* ── Toolbar ─────────────────────────────────────────────── */
+
+.products-toolbar {
+  padding: 28px 70px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.products-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.products-toolbar-help {
+  color: #9db2bd;
+}
+
+.btn {
+  border: none;
+  height: 42px;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  transition: background 0.3s ease, box-shadow 0.25s ease, transform 0.15s ease, border-color 0.15s ease, color 0.3s ease;
+}
+
+/* Primary — same brand blue/gold gradient + shine-sweep hover used
+   across the app (Invoices "New invoice", etc.) so "New product or
+   service" and "Create/Update product" feel consistent everywhere. */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--brand-gradient);
+  color: white;
+  box-shadow:
+    0 3px 10px -2px rgba(63, 127, 224, 0.45),
+    0 1px 2px rgba(224, 175, 10, 0.25);
+}
+
+.btn-primary::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.45) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-20deg);
+  transition: left 0.65s ease;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.btn-primary:hover {
+  background: var(--brand-gradient-hover);
+  box-shadow:
+    0 8px 22px -4px rgba(63, 127, 224, 0.55),
+    0 2px 8px -1px rgba(224, 175, 10, 0.35);
+  transform: translateY(-2px);
+}
+
+.btn-primary:hover::before {
+  left: 130%;
+}
+
+.btn-primary:active {
+  transform: scale(0.98) translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Secondary — "Print product catalogue" / "Product groups" / "Cancel":
+   flat outline by default, fills with the brand gradient on hover. */
+.btn-outline {
+  background: white;
+  border: 1px solid var(--brand-blue);
+  color: var(--brand-blue-deep);
+}
+
+.btn-outline:hover {
+  background: var(--brand-gradient);
+  border-color: transparent;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow:
+    0 6px 16px -4px rgba(63, 127, 224, 0.4),
+    0 2px 8px -1px rgba(224, 175, 10, 0.3);
+}
+
+.btn-outline:active {
+  transform: translateY(0);
+}
+
+.products-toolbar-right {
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  width: 220px;
+  height: 42px;
+  border: 2px solid var(--brand-blue);
+  border-radius: 25px;
+  padding: 0 20px;
+  font-size: 15px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--brand-blue-deep);
+  box-shadow: 0 0 0 3px rgba(63, 127, 224, 0.15);
+}
+
+/* ── Product form card ──────────────────────────────────────── */
+
+.product-form-card {
+  margin: 0 70px 40px;
+  padding: 30px;
+  border: 1px solid #e3e8ec;
+  border-radius: 10px;
+  background: #fbfcfd;
+}
+
+/* Standalone product detail/create page: the form card no longer sits
+   inline on the list page, so give it page-level margins to match
+   page-header's 70px gutters instead of the list's 0 70px 40px. */
+.product-form-card-standalone {
+  margin: 30px 70px 40px;
+}
+
+.product-form-section-title {
+  color: #2fae55;
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+
+.product-form-section-title:not(:first-child) {
+  margin-top: 30px;
+}
+
+.product-form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.product-form-field label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #24485f;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.product-form-field label svg {
+  color: #9db2bd;
+}
+
+.product-form-field input[type="text"],
+.product-form-field input[type="number"],
+.product-form-field select {
+  width: 100%;
+  height: 46px;
+  border: 1px solid #d9e1e6;
+  border-radius: 6px;
+  padding: 0 14px;
+  font-size: 15px;
+  color: #24485f;
+  background: #fff;
+  font-family: inherit;
+}
+
+.product-form-field input:focus,
+.product-form-field select:focus {
+  outline: none;
+  border-color: var(--brand-blue);
+  box-shadow: 0 0 0 3px rgba(63, 127, 224, 0.12);
+}
+
+.product-form-field input[readOnly] {
+  background: #f3f6f7;
+  color: #6c8494;
+}
+
+.product-form-checkbox-field {
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 12px;
+}
+
+.product-form-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.product-form-checkbox input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--brand-blue);
+  cursor: pointer;
+}
+
+.product-form-error {
+  color: #b23838;
+  font-size: 13px;
+  margin-top: 16px;
+}
+
+.product-form-actions {
+  display: flex;
+  gap: 14px;
+  margin-top: 26px;
+}
+
+.product-form-updated-at {
+  margin-top: 18px;
+  color: #6c8494;
+  font-size: 13.5px;
+}
+
+/* ── Product table ──────────────────────────────────────────── */
+
+.product-table {
+  margin: 0 70px 60px;
+}
+
+.product-table-header,
+.product-table-row {
+  display: grid;
+  grid-template-columns: 2.5fr 1.2fr 1fr 0.8fr 0.8fr 50px;
+  align-items: center;
+  padding: 14px 16px;
+  font-size: 14px;
+}
+
+.product-table-header {
+  background: #e9f9ee;
+  color: #2fae55;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  border-radius: 6px 6px 0 0;
+}
+
+.product-table-row {
+  border-bottom: 1px solid #eef2f4;
+  color: #24485f;
+  transition: background 0.15s ease;
+}
+
+.product-table-row:hover {
+  background: #f8fafc;
+}
+
+.product-table-row:last-child {
+  border-bottom: none;
+}
+
+.align-right {
+  text-align: right;
+}
+
+.product-link {
+  color: #00a4df;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.product-link:hover {
+  text-decoration: underline;
+}
+
+.product-table-empty {
+  padding: 40px 16px;
+  text-align: center;
+  color: #6c8494;
+}
+
+.product-row-delete {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.product-row-delete button {
+  border: none;
+  background: transparent;
+  color: #9db2bd;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 4px 8px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.product-row-delete button:hover {
+  background: #fdece9;
+  color: #b23838;
+}
+
+/* ── Footer (shared pattern with Invoices) ─────────────────── */
+
+.footer {
+  padding: 0 70px 30px;
+  display: flex;
+  gap: 40px;
+  color: #3b647f;
+  font-size: 16px;
+}
+
+.help-btn {
+  position: fixed;
+  right: 30px;
+  bottom: 20px;
+  border: none;
+  background: var(--brand-gradient);
+  color: white;
+  padding: 16px 28px;
+  border-radius: 40px;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow:
+    0 6px 16px -4px rgba(63, 127, 224, 0.45),
+    0 2px 8px -1px rgba(224, 175, 10, 0.3);
+  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease;
+}
+
+.help-btn:hover {
+  background: var(--brand-gradient-hover);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 1100px) {
+  .product-form-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .product-table {
+    overflow-x: auto;
+  }
+  .product-table-header,
+  .product-table-row {
+    min-width: 700px;
+  }
+}

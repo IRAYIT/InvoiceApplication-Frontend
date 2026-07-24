@@ -32,6 +32,16 @@ const InvoiceService = {
   searchInvoices(keyword) {
     return axios.get(`${API_BASE_URL}/search?keyword=${keyword}`);
   },
+
+  // Get payment history + summary for an invoice
+  getPayments(invoiceId) {
+    return axios.get(`${API_BASE_URL}/${invoiceId}/payments`);
+  },
+
+  // Record a new payment against an invoice
+  addPayment(invoiceId, payload) {
+    return axios.post(`${API_BASE_URL}/${invoiceId}/payments`, payload);
+  },
 };
 
 export default InvoiceService;

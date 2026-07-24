@@ -1,0 +1,357 @@
+:root {
+  --brand-blue: #3f7fe0;
+  --brand-blue-deep: #2f66c2;
+  --brand-gold: #f5c518;
+  --brand-gold-deep: #e0af0a;
+  --brand-gradient: linear-gradient(
+    120deg,
+    var(--brand-blue) 0%,
+    #6f9de8 35%,
+    #b7c96e 65%,
+    var(--brand-gold) 100%
+  );
+  --brand-gradient-hover: linear-gradient(
+    120deg,
+    var(--brand-blue-deep) 0%,
+    #5686d6 35%,
+    #a3b85a 65%,
+    var(--brand-gold-deep) 100%
+  );
+}
+
+.client-detail-page {
+  background: #f5f6f8;
+  padding: 32px 40px;
+  min-height: 100vh;
+  flex: 1;
+  min-width: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  box-sizing: border-box;
+  color: #1f2937;
+}
+
+.cd-title {
+  font-weight: 400;
+  font-size: 30px;
+  color: #1f3a52;
+  margin: 0 0 24px 0;
+}
+
+.cd-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.cd-search {
+  margin-left: auto;
+}
+
+.cd-search input {
+  border: 1px solid #d7dbe0;
+  border-radius: 20px;
+  padding: 9px 16px;
+  font-size: 14px;
+  width: 220px;
+  outline: none;
+}
+
+.cd-search input:focus {
+  border-color: #2563eb;
+}
+
+.cd-body {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.cd-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f3a52;
+  margin: 24px 0 12px 0;
+}
+
+.cd-section-heading:first-child {
+  margin-top: 0;
+}
+
+.cd-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.cd-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.cd-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 2px 0;
+}
+
+.cd-value {
+  font-size: 14px;
+  color: #374151;
+  margin: 0 0 4px 0;
+}
+
+.cd-divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 16px 0;
+}
+
+.cd-email-link {
+  display: block;
+  color: #2563eb;
+  font-size: 14px;
+  text-decoration: none;
+  margin-top: 2px;
+}
+
+.cd-email-link:hover {
+  text-decoration: underline;
+}
+
+.cd-send-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cd-muted-text {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.cd-error {
+  color: #b91c1c;
+  margin-bottom: 16px;
+}
+
+/* Right side */
+.cd-tabs {
+  display: flex;
+  gap: 26px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 20px;
+}
+
+.cd-tab {
+  background: none;
+  border: none;
+  padding: 0 0 10px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #9ca3af;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.cd-tab.active {
+  color: #1f3a52;
+  border-bottom-color: var(--brand-blue-deep);
+}
+
+.cd-invoice-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.cd-invoice-table thead th {
+  text-align: left;
+  color: #1f3a52;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.cd-invoice-table tbody td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f0f1f3;
+}
+
+.cd-empty-row {
+  text-align: center;
+  color: #9ca3af;
+  padding: 32px !important;
+}
+
+/* ===== Buttons — brand gradient / brand-blue outline, matching the
+   company logo colors used in ManageClients.css and ClientForm.css.
+   Scoped under .client-detail-page so these definitions always win
+   over any other stylesheet that also defines bare .btn-success /
+   .btn-outline classes. ===== */
+.client-detail-page .btn-success {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--brand-gradient);
+  background-size: 100% 100%;
+  color: #fff;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 10px 22px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.2px;
+  box-shadow:
+    0 3px 10px -2px rgba(63, 127, 224, 0.45),
+    0 1px 2px rgba(224, 175, 10, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease;
+}
+
+.client-detail-page .btn-success::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.45) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-20deg);
+  transition: left 0.65s ease;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.client-detail-page .btn-success:hover {
+  background: var(--brand-gradient-hover);
+  background-size: 100% 100%;
+  box-shadow:
+    0 8px 22px -4px rgba(63, 127, 224, 0.55),
+    0 2px 8px -1px rgba(224, 175, 10, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.client-detail-page .btn-success:hover::before {
+  left: 130%;
+}
+
+.client-detail-page .btn-success:active {
+  transform: scale(0.98) translateY(0);
+  box-shadow:
+    0 1px 3px -1px rgba(63, 127, 224, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.client-detail-page .btn-success:disabled {
+  background: #9ca3af;
+  background-image: none;
+  box-shadow: none;
+  transform: none;
+  cursor: not-allowed;
+}
+
+.client-detail-page .btn-success:disabled::before {
+  display: none;
+}
+
+.client-detail-page .btn-outline {
+  background: #fff;
+  color: var(--brand-blue-deep);
+  border: 1px solid var(--brand-blue);
+  border-radius: 6px;
+  padding: 10px 22px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.client-detail-page .btn-outline:hover {
+  background: #eef4fd;
+  border-color: var(--brand-blue-deep);
+}
+
+.client-detail-page .btn-outline:disabled {
+  color: #9ca3af;
+  border-color: #d7dbe0;
+  background: #fff;
+  cursor: not-allowed;
+}
+
+/* ===== "New estimate" / "New order" — same treatment as
+   "Print list of clients" on the Manage Clients page: icon plus a
+   brand-gradient fill that sweeps in on hover, so secondary actions
+   across the app share one consistent hover language instead of
+   each page inventing its own. ===== */
+.client-detail-page .btn-accent {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.client-detail-page .btn-accent svg {
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.client-detail-page .btn-accent::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--brand-gradient);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  z-index: -1;
+}
+
+.client-detail-page .btn-accent:hover {
+  color: #ffffff;
+  border-color: transparent;
+  background: transparent;
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 16px -4px rgba(63, 127, 224, 0.4),
+    0 2px 6px -1px rgba(224, 175, 10, 0.25);
+}
+
+.client-detail-page .btn-accent:hover::before {
+  opacity: 1;
+}
+
+.client-detail-page .btn-accent:hover svg {
+  transform: scale(1.08) rotate(-4deg);
+}
+
+.client-detail-page .btn-accent:active {
+  transform: translateY(0) scale(0.98);
+}
+
+@media (max-width: 900px) {
+  .cd-body {
+    grid-template-columns: 1fr;
+  }
+}

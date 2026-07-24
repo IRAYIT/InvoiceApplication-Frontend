@@ -1,0 +1,89 @@
+.pg-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 49, 71, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.pg-modal {
+  background: #fff;
+  border-radius: 10px;
+  width: 400px;
+  max-width: 90vw;
+  padding: 28px;
+  box-shadow: 0 20px 50px -12px rgba(20, 40, 60, 0.35);
+}
+
+.pg-modal h2 {
+  color: #1d5679;
+  font-size: 20px;
+  margin-bottom: 18px;
+}
+
+.pg-modal-add-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.pg-modal-add-row input {
+  flex: 1;
+  height: 42px;
+  border: 1px solid #d9e1e6;
+  border-radius: 6px;
+  padding: 0 14px;
+  font-size: 14px;
+  color: #24485f;
+}
+
+.pg-modal-error {
+  color: #b23838;
+  font-size: 13px;
+  margin: 8px 0;
+}
+
+.pg-modal-list {
+  list-style: none;
+  margin-top: 14px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.pg-modal-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 4px;
+  border-bottom: 1px solid #eef2f4;
+  color: #24485f;
+  font-size: 14px;
+}
+
+.pg-modal-empty {
+  color: #6c8494;
+  font-style: italic;
+}
+
+.pg-modal-delete {
+  border: none;
+  background: transparent;
+  color: #b23838;
+  font-size: 18px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 6px;
+}
+
+.pg-modal-delete:hover {
+  background: #fdece9;
+  border-radius: 4px;
+}
+
+.pg-modal-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
