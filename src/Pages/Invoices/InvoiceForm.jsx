@@ -221,7 +221,7 @@ const emptyRow = (rowType = "product") => ({
   rowType, // "product" | "text" — text rows are description-only lines (no qty/price)
   productId: null,
   description: "",
-  text: "", // extra information / notes shown alongside the product line
+  text: "", // extra information / notes shown alongside the product line — maps to InvoiceItemDTO.extraInfo on the wire
   quantity: 1,
   unit: "",
   unitPrice: 0,
@@ -393,7 +393,7 @@ export default function InvoiceForm({
                 rowType: it.rowType ?? "product",
                 productId: it.productId ?? null,
                 description: it.description ?? "",
-                text: it.text ?? "",
+                text: it.extraInfo ?? "", // InvoiceItemDTO.extraInfo -> local "text" field
                 quantity: it.quantity ?? 1,
                 unit: it.unit ?? "",
                 unitPrice: it.unitPrice ?? 0,
@@ -547,7 +547,7 @@ export default function InvoiceForm({
       rowType: row.rowType,
       productId: row.productId ?? null,
       description: row.description,
-      text: row.text,
+      extraInfo: row.text, // local "text" field -> InvoiceItemDTO.extraInfo on the wire
       quantity: toNumber(row.quantity),
       unit: row.unit,
       unitPrice: toNumber(row.unitPrice),

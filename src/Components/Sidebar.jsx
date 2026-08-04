@@ -27,7 +27,10 @@ const menuItems = [
   { key: "settings", label: "Settings", icon: FiSettings },
 ];
 
-const availablePages = ["clients", "invoices", "products"];
+// "estimates" and "orders" added now that EstimateForm/OrderForm
+// exist and are wired into routing — were previously excluded
+// because there was nothing to navigate to yet.
+const availablePages = ["clients", "invoices", "estimates", "orders", "products"];
 
 const Sidebar = ({ activePage, onNavigate }) => {
   return (

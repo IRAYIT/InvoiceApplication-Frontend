@@ -48,8 +48,21 @@ const STATUS_ORDER = ["OVERDUE", "UNPAID", "PAID", "DRAFT"];
 const formatKr = (n) =>
   `${Number(n || 0).toLocaleString("sv-SE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kr`;
 
+// Normalizes a raw invoice object from the backend (which uses
+// status / totalAmount / taxAmount) into the shape this component
+// works with (paid / sent booleans, total, vatAmount). Falls back to
+// any field that's already in the expected shape so this is safe to
+// run on data that's already been mapped once.
+const mapInvoice = (inv) => ({
+  ...inv,
+  total: inv.total ?? inv.totalAmount ?? 0,
+  vatAmount: inv.vatAmount ?? inv.taxAmount ?? 0,
+  paid: inv.paid ?? inv.status === "PAID",
+  sent: inv.sent ?? inv.status === "SENT" ?? false,
+});
+
 export default function ManageInvoices({ onNavigate, invoices: invoicesProp }) {
-  const [invoices, setInvoices] = useState(invoicesProp || []);
+  const [invoices, setInvoices] = useState((invoicesProp || []).map(mapInvoice));
   const [loading, setLoading] = useState(!invoicesProp);
   const [error, setError] = useState(null);
   const [year, setYear] = useState(new Date().getFullYear());
@@ -68,7 +81,8 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp }) {
     InvoiceService.getAllInvoices()
       .then(({ data }) => {
         if (cancelled) return;
-        setInvoices(Array.isArray(data) ? data : data?.content ?? []);
+        const list = Array.isArray(data) ? data : data?.content ?? [];
+        setInvoices(list.map(mapInvoice));
       })
       .catch((err) => {
         if (!cancelled) setError(err?.response?.data?.message || "Failed to load invoices.");
@@ -131,13 +145,15 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp }) {
     setPaymentModalInvoice(inv);
   };
 
-  // Called by PaymentModal after a successful save (InvoicePaymentSummaryDTO).
+  // Called by PaymentModal after a successful save (InvoicePaymentSummaryDTO):
+  //   { invoiceId, invoiceTotal, totalPaid, remaining, status, paid, payments }
   const handlePaymentSaved = (summary) => {
     setInvoices((prev) =>
       prev.map((inv) =>
         inv.id === summary.invoiceId
           ? {
               ...inv,
+              total: summary.invoiceTotal ?? inv.total,
               paid: summary.paid,
               status: summary.status,
               amountPaid: summary.totalPaid,
@@ -155,6 +171,11 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp }) {
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to delete the invoice.");
     }
+  };
+
+  // Opens the full invoice detail view (FAKTURA layout, sidebar actions, history).
+  const handleOpenInvoice = (inv) => {
+    onNavigate && onNavigate("viewInvoice", inv.id);
   };
 
   if (loading) {
@@ -254,7 +275,14 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp }) {
                   <div className="status-table-row" key={inv.id}>
                     <div>{inv.invoiceNumber}</div>
                     <div>
-                      <a href="#client" className="client-link" onClick={(e) => e.preventDefault()}>
+                      <a
+                        href="#invoice"
+                        className="client-link"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleOpenInvoice(inv);
+                        }}
+                      >
                         {inv.clientName}
                       </a>
                     </div>

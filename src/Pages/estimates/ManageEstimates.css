@@ -1,0 +1,528 @@
+/* ===== Brand colors ===== */
+:root {
+  --brand-blue: #3f7fe0;
+  --brand-blue-deep: #2f66c2;
+  --brand-gold: #f5c518;
+  --brand-gold-deep: #e0af0a;
+  --brand-gradient: linear-gradient(
+    120deg,
+    var(--brand-blue) 0%,
+    #6f9de8 35%,
+    #b7c96e 65%,
+    var(--brand-gold) 100%
+  );
+  --brand-gradient-hover: linear-gradient(
+    120deg,
+    var(--brand-blue-deep) 0%,
+    #5686d6 35%,
+    #a3b85a 65%,
+    var(--brand-gold-deep) 100%
+  );
+}
+
+.es-content {
+  flex: 1;
+  background: #fff;
+  position: relative;
+  min-height: 100vh;
+}
+
+.es-content *,
+.es-content *::before,
+.es-content *::after {
+  box-sizing: border-box;
+}
+
+.es-page-header {
+  padding: 50px 70px 25px;
+  border-bottom: 1px solid #e3e8ec;
+}
+
+.es-page-header h1 {
+  color: #1d5679;
+  font-size: 54px;
+  font-weight: 300;
+}
+
+/* Toolbar */
+
+.es-toolbar {
+  padding: 28px 70px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.es-left-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.es-btn {
+  border: none;
+  height: 42px;
+  padding: 0 22px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease, border-color 0.15s ease;
+}
+
+/* "New estimate" — brand gradient with the same shine-sweep hover used
+   across Clients/Invoices, instead of a plain flat color. */
+.es-btn-primary {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--brand-gradient);
+  background-size: 100% 100%;
+  color: white;
+  box-shadow:
+    0 3px 10px -2px rgba(63, 127, 224, 0.45),
+    0 1px 2px rgba(224, 175, 10, 0.25);
+}
+
+.es-btn-primary svg {
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.es-btn-primary::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.45) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-20deg);
+  transition: left 0.65s ease;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.es-btn-primary:hover {
+  background: var(--brand-gradient-hover);
+  background-size: 100% 100%;
+  box-shadow:
+    0 8px 22px -4px rgba(63, 127, 224, 0.55),
+    0 2px 8px -1px rgba(224, 175, 10, 0.35);
+  transform: translateY(-2px);
+}
+
+.es-btn-primary:hover::before {
+  left: 130%;
+}
+
+.es-btn-primary:hover svg {
+  transform: scale(1.08) rotate(-4deg);
+}
+
+.es-btn-primary:active {
+  transform: scale(0.98) translateY(0);
+}
+
+.es-center-nav {
+  display: flex;
+  align-items: center;
+}
+
+.es-center-nav button {
+  width: 48px;
+  height: 48px;
+  border: 1px solid #d9e1e6;
+  background: white;
+  font-size: 26px;
+  color: #215675;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.es-center-nav button:hover {
+  background: #eef4fd;
+  color: var(--brand-blue-deep);
+}
+
+.es-year-box {
+  width: 240px;
+  height: 48px;
+  border-top: 1px solid #d9e1e6;
+  border-bottom: 1px solid #d9e1e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: #3fae52;
+}
+
+.es-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.es-date-input {
+  width: 130px;
+  height: 48px;
+  border: 1px solid #d9e1e6;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 15px;
+  color: #24485f;
+}
+
+.es-search-input {
+  width: 180px;
+  height: 48px;
+  border: 2px solid var(--brand-blue);
+  border-radius: 25px;
+  padding: 0 20px;
+  font-size: 15px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.es-search-input:focus {
+  outline: none;
+  border-color: var(--brand-blue-deep);
+  box-shadow: 0 0 0 3px rgba(63, 127, 224, 0.15);
+}
+
+/* Estimate area */
+
+.es-estimate-area {
+  padding: 0 70px 60px;
+  min-height: calc(100vh - 320px);
+  position: relative;
+}
+
+.es-loading-state,
+.es-error-state {
+  padding: 60px 70px;
+  font-size: 16px;
+}
+
+.es-loading-state {
+  color: #6c8494;
+}
+
+.es-error-state {
+  color: #b23838;
+}
+
+.es-empty-state {
+  text-align: center;
+  margin-top: 120px;
+}
+
+.es-empty-state p {
+  color: #184d72;
+  font-size: 20px;
+}
+
+/* Status groups (Unanswered / Approved / Rejected / Converted / Draft) */
+
+.es-status-group {
+  margin-bottom: 40px;
+}
+
+.es-status-summary {
+  padding-bottom: 12px;
+  border-bottom: 3px solid transparent;
+  margin-bottom: 0;
+}
+
+.es-status-label {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.es-status-amount {
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.es-status-vat {
+  font-size: 15px;
+}
+
+.status-unanswered .es-status-label,
+.status-unanswered .es-status-amount,
+.status-unanswered .es-status-vat {
+  color: #ed9d1a;
+}
+.status-unanswered .es-status-summary {
+  border-bottom-color: #ed9d1a;
+}
+.status-unanswered .es-status-table-header {
+  background: #fdf3df;
+  color: #ed9d1a;
+}
+.es-status-badge.status-unanswered {
+  background: #fdf3df;
+  color: #ed9d1a;
+}
+
+.status-approved .es-status-label,
+.status-approved .es-status-amount,
+.status-approved .es-status-vat {
+  color: #2fae55;
+}
+.status-approved .es-status-summary {
+  border-bottom-color: #2fae55;
+}
+.status-approved .es-status-table-header {
+  background: #e9f9ee;
+  color: #2fae55;
+}
+.es-status-badge.status-approved {
+  background: #e9f9ee;
+  color: #2fae55;
+}
+
+.status-rejected .es-status-label,
+.status-rejected .es-status-amount,
+.status-rejected .es-status-vat {
+  color: #e2574c;
+}
+.status-rejected .es-status-summary {
+  border-bottom-color: #e2574c;
+}
+.status-rejected .es-status-table-header {
+  background: #fdece9;
+  color: #e2574c;
+}
+.es-status-badge.status-rejected {
+  background: #fdece9;
+  color: #e2574c;
+}
+
+.status-converted .es-status-label,
+.status-converted .es-status-amount,
+.status-converted .es-status-vat {
+  color: var(--brand-blue-deep);
+}
+.status-converted .es-status-summary {
+  border-bottom-color: var(--brand-blue-deep);
+}
+.status-converted .es-status-table-header {
+  background: #eef4fd;
+  color: var(--brand-blue-deep);
+}
+.es-status-badge.status-converted {
+  background: #eef4fd;
+  color: var(--brand-blue-deep);
+}
+
+.status-draft .es-status-label,
+.status-draft .es-status-amount,
+.status-draft .es-status-vat {
+  color: #6c8494;
+}
+.status-draft .es-status-summary {
+  border-bottom-color: #b7c4cc;
+}
+.status-draft .es-status-table-header {
+  background: #f3f6f7;
+  color: #6c8494;
+}
+.es-status-badge.status-draft {
+  background: #f3f6f7;
+  color: #6c8494;
+}
+
+.es-status-table {
+  margin-top: 0;
+}
+
+.es-status-table-header,
+.es-status-table-row {
+  display: grid;
+  grid-template-columns: 110px 2fr 1.2fr 1.2fr 80px 160px 60px;
+  align-items: center;
+  padding: 14px 16px;
+  font-size: 14px;
+}
+
+.es-status-table-header {
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.es-status-table-row {
+  border-bottom: 1px solid #eef2f4;
+  color: #24485f;
+  transition: background 0.15s ease;
+}
+
+.es-status-table-row:hover {
+  background: #f8fafc;
+}
+
+.es-status-table-row:last-child {
+  border-bottom: none;
+}
+
+.es-status-table-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--brand-blue);
+  pointer-events: none; /* read-only display, not an editable toggle */
+}
+
+/* Status badge — display-only. There's no backend endpoint yet to
+   change an estimate's status from this list, so this intentionally
+   isn't a working dropdown (see handleSendToClient's note in the
+   component for the same reasoning). */
+.es-status-badge {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.es-client-link {
+  color: #00a4df;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.es-client-link:hover {
+  text-decoration: underline;
+}
+
+.es-estimate-number-link {
+  color: var(--brand-blue-deep);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.es-estimate-number-link:hover {
+  text-decoration: underline;
+  color: var(--brand-blue);
+}
+
+.es-row-menu {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.es-row-menu-btn {
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: #9db2bd;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 4px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.es-row-menu-btn:hover {
+  color: var(--brand-blue-deep);
+  background: #eef4fd;
+}
+
+.es-row-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: #fff;
+  border: 1px solid #dde4e7;
+  border-radius: 8px;
+  box-shadow: 0 12px 28px -8px rgba(20, 40, 60, 0.25);
+  min-width: 190px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 6px;
+}
+
+.es-row-menu-dropdown button {
+  border: none;
+  background: #fff;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #24485f;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.es-row-menu-dropdown button:hover {
+  background: #eef4fd;
+}
+
+.es-row-menu-danger {
+  color: #b23838 !important;
+}
+
+.es-row-menu-danger:hover {
+  background: #fdecec !important;
+}
+
+/* Footer */
+
+.es-footer {
+  position: absolute;
+  bottom: 30px;
+  left: 50px;
+  display: flex;
+  gap: 40px;
+  color: #3b647f;
+  font-size: 16px;
+}
+
+.es-help-btn {
+  position: fixed;
+  right: 30px;
+  bottom: 20px;
+  border: none;
+  background: var(--brand-gradient);
+  color: white;
+  padding: 16px 28px;
+  border-radius: 40px;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow:
+    0 6px 16px -4px rgba(63, 127, 224, 0.45),
+    0 2px 8px -1px rgba(224, 175, 10, 0.3);
+  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease;
+}
+
+.es-help-btn:hover {
+  background: var(--brand-gradient-hover);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 1100px) {
+  .es-status-table {
+    overflow-x: auto;
+  }
+  .es-status-table-header,
+  .es-status-table-row {
+    min-width: 780px;
+  }
+}

@@ -1,0 +1,363 @@
+.invoice-page-title {
+  font-size: 26px;
+  font-weight: 600;
+  color: #37474f;
+  margin: 4px 0 20px;
+  padding-right: 32px;
+}
+
+.invoice-view-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 28px;
+  align-items: start;
+  padding-right: 32px;
+}
+
+/* ── Invoice document ────────────────────────────────────── */
+.invoice-doc {
+  background: #fff;
+  border: 1px solid #e6e8ec;
+  border-radius: 4px;
+  padding: 32px 36px 28px;
+}
+
+.invoice-doc-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 18px;
+}
+
+.invoice-doc-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #4c8ff0;
+  letter-spacing: 0.5px;
+  margin: 0;
+  border-bottom: 2px solid #4c8ff0;
+  padding-bottom: 4px;
+}
+
+.invoice-meta-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 24px;
+  align-items: stretch;
+}
+
+.invoice-meta-box {
+  flex: 1.4;
+  border: 1px solid #e6e8ec;
+  border-radius: 4px;
+  padding: 16px 18px;
+}
+
+/* Two-column layout inside the meta box: dates/terms on the left,
+   Your/Our reference stacked on the right — matches the fakturan.nu
+   reference layout instead of stacking everything vertically. */
+.meta-box-columns {
+  display: flex;
+  gap: 28px;
+}
+
+.meta-fields-col {
+  flex: 1.4;
+}
+
+.meta-refs-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 2px;
+}
+
+.meta-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13.5px;
+  color: #222;
+  padding: 2px 0;
+}
+
+.meta-line span {
+  color: #222;
+  font-weight: 700;
+}
+
+.meta-reference-block {
+  font-size: 13.5px;
+}
+
+.meta-reference-label {
+  display: block;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 3px;
+}
+
+.meta-reference-value {
+  color: #333;
+}
+
+.meta-note {
+  font-size: 12px;
+  color: #6a6f76;
+  margin: 14px 0 0;
+}
+
+.invoice-address-box {
+  flex: 1;
+  border: 1px solid #e6e8ec;
+  border-radius: 4px;
+  overflow: hidden;
+  align-self: flex-start;
+}
+
+.address-label {
+  background: #4c8ff0;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+}
+
+.address-body {
+  padding: 12px 14px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #222;
+}
+
+.invoice-items-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 8px;
+}
+
+.invoice-items-table thead th {
+  background: #4c8ff0;
+  color: #fff;
+  text-align: left;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 8px 12px;
+}
+
+.invoice-items-table thead th:not(:first-child) {
+  text-align: right;
+}
+
+.invoice-items-table tbody td {
+  padding: 10px 12px;
+  font-size: 13.5px;
+  border-bottom: 1px solid #f0f1f3;
+}
+
+.invoice-items-table tbody td:not(:first-child) {
+  text-align: right;
+}
+
+.invoice-totals {
+  max-width: 340px;
+  margin-left: auto;
+  padding-top: 8px;
+  border-top: 1px dashed #d8dbe0;
+}
+
+.totals-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13.5px;
+  padding: 3px 0;
+  color: #333;
+}
+
+.totals-grand {
+  border-top: 1px solid #222;
+  margin-top: 8px;
+  padding-top: 10px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #111;
+}
+
+.invoice-footer-boxes {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.footer-box {
+  display: flex;
+  gap: 40px;
+  border: 1px solid #e6e8ec;
+  border-radius: 4px;
+  padding: 14px 18px;
+  font-size: 13px;
+}
+
+.footer-col {
+  min-width: 160px;
+}
+
+.footer-label {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.footer-note {
+  margin-top: 4px;
+  color: #444;
+}
+
+/* ── Sidebar ──────────────────────────────────────────────── */
+.invoice-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 16px;
+  padding-right: 6px;
+  box-sizing: border-box;
+}
+
+.sidebar-error {
+  background: #fdecec;
+  color: #b3261e;
+  border: 1px solid #f3c8c6;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+/* Solid green CTA — matches the fakturan.nu reference exactly. */
+.btn-send {
+  background: #4caf50;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 14px 16px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.btn-send:hover {
+  background-color: #43a047;
+}
+
+.invoice-sidebar .btn-outline {
+  background: #fff;
+  border: 1px solid #d7dae0;
+  border-radius: 4px;
+  padding: 11px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+  cursor: pointer;
+}
+
+.invoice-sidebar .btn-outline:hover {
+  background: #f6f7f9;
+}
+
+.sidebar-links {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sidebar-links button,
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  color: #4caf50;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  width: fit-content;
+}
+
+.sidebar-links button:hover,
+.sidebar-link:hover {
+  color: #388e3c;
+}
+
+.go-to-client {
+  margin-top: -2px;
+}
+
+.sidebar-flags {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  gap: 20px;
+  padding: 4px 4px 4px 0;
+}
+
+.sidebar-flags label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #222;
+  cursor: pointer;
+}
+
+.sidebar-history {
+  border-top: 1px solid #eceef1;
+  padding-top: 16px;
+}
+
+.history-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 19px;
+  font-weight: 500;
+  color: #4c8ff0;
+  margin-bottom: 14px;
+}
+
+.history-entry {
+  padding: 8px 0;
+}
+
+.history-label {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #222;
+}
+
+.history-timestamp {
+  font-size: 12.5px;
+  color: #8a8f96;
+  margin-top: 2px;
+}
+
+.history-empty {
+  font-size: 13px;
+  color: #8a8f96;
+}
+
+@media (max-width: 900px) {
+  .invoice-view-grid {
+    grid-template-columns: 1fr;
+  }
+  .invoice-sidebar {
+    position: static;
+  }
+  .meta-box-columns {
+    flex-direction: column;
+    gap: 14px;
+  }
+}

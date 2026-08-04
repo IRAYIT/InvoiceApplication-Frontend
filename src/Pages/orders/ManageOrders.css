@@ -1,0 +1,498 @@
+/* ===== Brand colors — same palette/tokens as OrderForm.css ===== */
+:root {
+  --brand-blue: #3f7fe0;
+  --brand-blue-deep: #2f66c2;
+  --brand-gold: #f5c518;
+  --brand-gold-deep: #e0af0a;
+  --brand-gradient: linear-gradient(
+    120deg,
+    var(--brand-blue) 0%,
+    #6f9de8 35%,
+    #b7c96e 65%,
+    var(--brand-gold) 100%
+  );
+  --brand-gradient-hover: linear-gradient(
+    120deg,
+    var(--brand-blue-deep) 0%,
+    #5686d6 35%,
+    #a3b85a 65%,
+    var(--brand-gold-deep) 100%
+  );
+}
+
+/* All rules scoped under .ol- so nothing here collides with other
+   pages' stylesheets (mirrors the .of- convention in OrderForm.css). */
+
+.ol-content {
+  flex: 1;
+  padding: 0 55px 60px;
+  background: #fff;
+  min-height: 100vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.ol-content *,
+.ol-content *::before,
+.ol-content *::after {
+  box-sizing: border-box;
+}
+
+.ol-page-header {
+  margin: 0 -55px 28px;
+  padding: 28px 55px 22px;
+  border-bottom: 1px solid #e4ebee;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ol-page-title {
+  font-size: 38px;
+  color: #184f73;
+  font-weight: 400;
+  letter-spacing: -0.2px;
+}
+
+.ol-error-banner {
+  background: #fdecec;
+  border: 1px solid #f3b9b9;
+  color: #b23838;
+  padding: 14px 18px;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+/* Buttons */
+
+.ol-create-btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--brand-gradient);
+  color: white;
+  border: 1px solid transparent;
+  padding: 13px 22px;
+  border-radius: 4px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 3px 10px -2px rgba(63, 127, 224, 0.45), 0 1px 2px rgba(224, 175, 10, 0.25);
+  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease;
+}
+
+.ol-create-btn:hover {
+  background: var(--brand-gradient-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px -4px rgba(63, 127, 224, 0.55), 0 2px 8px -1px rgba(224, 175, 10, 0.35);
+}
+
+.ol-outline-btn {
+  background: white;
+  border: 1px solid var(--brand-blue);
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  color: var(--brand-blue-deep);
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.ol-outline-btn:hover:not(:disabled) {
+  background: #eef4fd;
+  border-color: var(--brand-blue-deep);
+}
+
+.ol-outline-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Toolbar: search + status filter */
+
+.ol-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.ol-search-input {
+  position: relative;
+  flex: 1;
+  max-width: 380px;
+}
+
+.ol-search-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9db2bd;
+  pointer-events: none;
+}
+
+.ol-search-input input {
+  width: 100%;
+  height: 42px;
+  border: 1px solid #ccd7dd;
+  border-radius: 4px;
+  padding: 0 14px 0 38px;
+  font-size: 15px;
+  color: #24485f;
+  font-family: inherit;
+}
+
+.ol-search-input input:focus {
+  outline: none;
+  border-color: var(--brand-blue);
+  box-shadow: 0 0 0 3px rgba(63, 127, 224, 0.12);
+}
+
+.ol-filter-btn {
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 4px;
+  border: 1px solid #ccd7dd;
+  background: #fff;
+  font-size: 14.5px;
+  font-family: inherit;
+  color: #45687d;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ol-filter-btn strong {
+  color: #24485f;
+}
+
+.ol-filter-btn:hover {
+  border-color: var(--brand-blue);
+}
+
+.ol-filter-chevron {
+  transition: transform 0.15s ease;
+  color: #7690a1;
+}
+
+.ol-filter-chevron.is-open {
+  transform: rotate(180deg);
+}
+
+/* Generic dropdown primitive, reused for status filter, status pill
+   editing, and the row action menu */
+
+.ol-dropdown-wrap {
+  position: relative;
+}
+
+.ol-dropdown-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  background: #fff;
+  border: 1px solid #dde4e7;
+  border-radius: 10px;
+  box-shadow: 0 12px 28px -8px rgba(20, 40, 60, 0.25);
+  padding: 6px;
+  min-width: 190px;
+  z-index: 40;
+}
+
+.ol-align-left {
+  left: 0;
+}
+
+.ol-align-right {
+  right: 0;
+}
+
+.ol-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  padding: 10px 12px;
+  border-radius: 7px;
+  font-size: 14.5px;
+  font-family: inherit;
+  color: #33586b;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ol-dropdown-item:hover {
+  background: #eef4fd;
+  color: var(--brand-blue-deep);
+}
+
+.ol-dropdown-item.is-active {
+  color: var(--brand-blue-deep);
+  font-weight: 700;
+  background: #eef4fd;
+}
+
+.ol-dropdown-item-danger {
+  color: #b23838;
+}
+
+.ol-dropdown-item-danger:hover {
+  background: #fdecec;
+  color: #b23838;
+}
+
+.ol-filter-count {
+  margin-left: auto;
+  color: #9db2bd;
+  font-size: 13px;
+}
+
+/* Table */
+
+.ol-table-card {
+  border: 1px solid #dde4e7;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.ol-table-header,
+.ol-table-row {
+  display: grid;
+  grid-template-columns: 110px 1.6fr 140px 150px 160px 120px 48px;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+}
+
+.ol-table-header {
+  background: #fafafa;
+  color: #6c8494;
+  font-weight: 600;
+  font-size: 12.5px;
+  letter-spacing: 0.3px;
+  border-bottom: 1px solid #dde4e7;
+}
+
+.ol-table-row {
+  border-bottom: 1px solid #eef2f4;
+  font-size: 15px;
+  color: #33586b;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.ol-table-row:hover {
+  background: #f8fbfd;
+}
+
+.ol-table-row:last-of-type {
+  border-bottom: none;
+}
+
+.ol-order-number {
+  font-weight: 700;
+  color: #184f73;
+}
+
+.ol-client-name {
+  font-weight: 600;
+  color: #24485f;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ol-col-right {
+  text-align: right;
+}
+
+.ol-total-value {
+  font-weight: 700;
+  color: #184f73;
+}
+
+.ol-col-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Status badge / editable pill */
+
+.ol-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: 30px;
+  font-size: 13.5px;
+  font-weight: 600;
+  border: none;
+  font-family: inherit;
+}
+
+.ol-status-badge-btn {
+  cursor: pointer;
+}
+
+.ol-status-badge-btn:hover:not(.is-disabled) {
+  filter: brightness(0.96);
+}
+
+.ol-status-badge-btn.is-disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.ol-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ol-status-chevron {
+  margin-left: 2px;
+  transition: transform 0.15s ease;
+}
+
+.ol-status-chevron.is-open {
+  transform: rotate(180deg);
+}
+
+/* Row action menu */
+
+.ol-row-menu-btn {
+  border: none;
+  background: transparent;
+  color: #9db2bd;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 6px;
+}
+
+.ol-row-menu-btn:hover {
+  background: #eef4fd;
+  color: var(--brand-blue-deep);
+}
+
+.ol-confirm-delete {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: #45687d;
+  white-space: nowrap;
+}
+
+.ol-confirm-yes,
+.ol-confirm-no {
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.ol-confirm-yes {
+  background: #b23838;
+  color: white;
+}
+
+.ol-confirm-yes:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ol-confirm-no {
+  background: #eef2f4;
+  color: #45687d;
+}
+
+/* Loading / empty states */
+
+.ol-state-row {
+  padding: 60px 0;
+  text-align: center;
+  color: #6c8494;
+  font-size: 15px;
+}
+
+.ol-empty-state {
+  padding: 70px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: #6c8494;
+  text-align: center;
+}
+
+.ol-empty-state svg {
+  color: #b7c9d3;
+  margin-bottom: 10px;
+}
+
+.ol-empty-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #33586b;
+}
+
+.ol-empty-subtitle {
+  font-size: 14px;
+  max-width: 340px;
+  margin-bottom: 14px;
+}
+
+/* Pagination */
+
+.ol-pagination {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ol-pagination-summary {
+  font-size: 14px;
+  color: #6c8494;
+}
+
+.ol-pagination-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.ol-pagination-btn {
+  height: 38px;
+}
+
+@media (max-width: 1200px) {
+  .ol-table-card {
+    overflow-x: auto;
+  }
+
+  .ol-table-header,
+  .ol-table-row {
+    min-width: 900px;
+  }
+}
