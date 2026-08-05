@@ -250,6 +250,14 @@
   background-color: #43a047;
 }
 
+.btn-send-sent {
+  background: #a5d6a7;
+}
+
+.btn-send-sent:hover {
+  background: #a5d6a7;
+}
+
 .invoice-sidebar .btn-outline {
   background: #fff;
   border: 1px solid #d7dae0;

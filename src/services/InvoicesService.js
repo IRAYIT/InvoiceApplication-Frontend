@@ -42,6 +42,28 @@ const InvoiceService = {
   addPayment(invoiceId, payload) {
     return axios.post(`${API_BASE_URL}/${invoiceId}/payments`, payload);
   },
+
+  // Send invoice by e-mail (optionally with message + attachment)
+  sendInvoiceByEmail(id, formData) {
+    return axios.post(`${API_BASE_URL}/${id}/send/email`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+
+  // Download/view the generated invoice PDF
+  downloadInvoicePdf(id) {
+    return axios.get(`${API_BASE_URL}/${id}/pdf`, { responseType: "blob" });
+  },
+
+  // Send invoice by postal mail
+  sendInvoiceByPost(id, payload) {
+    return axios.post(`${API_BASE_URL}/${id}/send/post`, payload);
+  },
+
+  // Send invoice by e-invoice
+  sendInvoiceByEInvoice(id, payload) {
+    return axios.post(`${API_BASE_URL}/${id}/send/e-invoice`, payload);
+  },
 };
 
 export default InvoiceService;

@@ -45,6 +45,24 @@ const STATUS_META = {
 };
 const STATUS_ORDER = ["OVERDUE", "UNPAID", "PAID", "DRAFT"];
 
+// Maps the backend's real status values (DRAFT, SENT, PAID, OVERDUE,
+// CANCELLED) onto the four display buckets above. There's no "UNPAID"
+// backend status — a sent-but-not-yet-due invoice is what "Unpaid" means
+// here. Returns null for CANCELLED, which stays hidden (same as before).
+const getDisplayStatus = (inv) => {
+  if (inv.status === "PAID") return "PAID";
+  if (inv.status === "CANCELLED") return null;
+  if (inv.status === "DRAFT") return "DRAFT";
+  // SENT or OVERDUE from here on — reclassify by due date so a SENT
+  // invoice whose due date has passed still lands under Overdue even
+  // if nothing has explicitly flipped its status to OVERDUE yet.
+  const due = inv.dueDate ? new Date(inv.dueDate) : null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (due && due < today) return "OVERDUE";
+  return "UNPAID";
+};
+
 const formatKr = (n) =>
   `${Number(n || 0).toLocaleString("sv-SE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kr`;
 
@@ -58,7 +76,7 @@ const mapInvoice = (inv) => ({
   total: inv.total ?? inv.totalAmount ?? 0,
   vatAmount: inv.vatAmount ?? inv.taxAmount ?? 0,
   paid: inv.paid ?? inv.status === "PAID",
-  sent: inv.sent ?? inv.status === "SENT" ?? false,
+  sent: inv.sent ?? (inv.status !== "DRAFT" && inv.status !== "CANCELLED"),
 });
 
 export default function ManageInvoices({ onNavigate, invoices: invoicesProp }) {
@@ -116,7 +134,8 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp }) {
   const groups = useMemo(() => {
     const byStatus = {};
     filteredInvoices.forEach((inv) => {
-      const key = inv.status || "DRAFT";
+      const key = getDisplayStatus(inv);
+      if (!key) return; // CANCELLED — stays hidden
       if (!byStatus[key]) byStatus[key] = [];
       byStatus[key].push(inv);
     });

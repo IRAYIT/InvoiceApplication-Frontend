@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import InvoiceService from "../../services/InvoicesService";
 import "./ViewInvoice.css";
 import PaymentModal from "./PaymentModal";
+import SendInvoicePanel from "./SendInvoicePanel";
 
 /* ── Small inline icons (kept consistent with ManageInvoices icon set) ── */
 const IconPrint = (props) => (
@@ -57,6 +58,7 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
   const [error, setError] = useState(null);
   const [actionError, setActionError] = useState(null);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [sendPanelOpen, setSendPanelOpen] = useState(false);
 
   const id = invoiceProp?.id ?? invoiceId;
 
@@ -105,24 +107,33 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
   };
 
   const handleSentToggle = async () => {
-    const next = !invoice.sent;
-    setInvoice((prev) => ({ ...prev, sent: next }));
+    // Only DRAFT <-> SENT is a manual toggle — PAID/OVERDUE/CANCELLED
+    // shouldn't be silently reverted by unchecking this box.
+    if (invoice.status !== "DRAFT" && invoice.status !== "SENT") return;
+    const nextStatus = invoice.status === "SENT" ? "DRAFT" : "SENT";
+    const prevStatus = invoice.status;
+    setInvoice((prev) => ({ ...prev, status: nextStatus }));
     try {
-      await InvoiceService.updateInvoice(invoice.id, { ...invoice, sent: next });
+      await InvoiceService.updateInvoice(invoice.id, { ...invoice, status: nextStatus });
     } catch (err) {
-      setInvoice((prev) => ({ ...prev, sent: !next }));
+      setInvoice((prev) => ({ ...prev, status: prevStatus }));
       setActionError(err?.response?.data?.message || "Failed to update the invoice.");
     }
   };
 
-  const handleSendInvoice = async () => {
-    setActionError(null);
-    try {
-      await InvoiceService.sendInvoice(invoice.id);
-      setInvoice((prev) => ({ ...prev, sent: true }));
-    } catch (err) {
-      setActionError(err?.response?.data?.message || "Failed to send the invoice.");
-    }
+  const handleSendInvoiceClick = () => {
+    setSendPanelOpen((open) => !open);
+  };
+
+  const handleInvoiceSent = ({ method, target }) => {
+    setInvoice((prev) => ({
+      ...prev,
+      status: prev.status === "DRAFT" ? "SENT" : prev.status,
+      history: [
+        { label: `Sent by ${method === "EMAIL" ? "e-mail" : method === "POST" ? "postal mail" : "e-invoice"} to ${target}`, timestamp: new Date().toISOString() },
+        ...(prev.history || []),
+      ],
+    }));
   };
 
   const handleViewPdf = async () => {
@@ -177,10 +188,19 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
 
   const history = invoice.history || [];
   const isPaid = invoice.status === "PAID";
+  const isSent = invoice.status !== "DRAFT" && invoice.status !== "CANCELLED";
 
   return (
     <main className="content invoice-view">
       <h1 className="invoice-page-title">Invoice #{invoice.invoiceNumber}</h1>
+
+      {sendPanelOpen && (
+        <SendInvoicePanel
+          invoice={invoice}
+          onClose={() => setSendPanelOpen(false)}
+          onSent={handleInvoiceSent}
+        />
+      )}
 
       <div className="invoice-view-grid">
         {/* ── Invoice document ─────────────────────────────── */}
@@ -313,7 +333,10 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
         <aside className="invoice-sidebar">
           {actionError && <div className="sidebar-error">{actionError}</div>}
 
-          <button className="btn btn-send" onClick={handleSendInvoice}>
+          <button
+            className={`btn btn-send ${isSent ? "btn-send-sent" : ""}`}
+            onClick={handleSendInvoiceClick}
+          >
             Send the invoice
           </button>
 
@@ -348,7 +371,7 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
               Paid
             </label>
             <label>
-              <input type="checkbox" checked={!!invoice.sent} onChange={handleSentToggle} />
+              <input type="checkbox" checked={isSent} onChange={handleSentToggle} />
               Sent
             </label>
           </div>
