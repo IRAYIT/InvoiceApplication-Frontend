@@ -8,6 +8,10 @@ const InvoiceService = {
     return axios.get(API_BASE_URL);
   },
 
+  getInvoicesByClientId(clientId) {
+    return axios.get(`${API_BASE_URL}/client/${clientId}`);
+  },
+
   // Get invoice by id
   getInvoiceById(id) {
     return axios.get(`${API_BASE_URL}/${id}`);

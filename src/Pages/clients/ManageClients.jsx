@@ -72,7 +72,34 @@ function ManageClients({ onNavigate }) {
   const [error, setError] = useState(null);
   const [showNewClientForm, setShowNewClientForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showPrintPanel, setShowPrintPanel] = useState(false);
 
+  const [printFields, setPrintFields] = useState({
+    number: true,
+    name: true,
+    companyRegistrationNumber: true,
+    vatNo: true,
+    phone: true,
+    mobilePhone: true,
+    phoneHome: true,
+    fax: true,
+    email: true,
+    yourReference: true,
+  
+    addressCareOf: true,
+    addressStreetAddress: true,
+    addressZipCode: true,
+    addressCity: true,
+    addressCountry: true,
+  
+    deliveryCareOf: true,
+    deliveryStreetAddress: true,
+    deliveryZipCode: true,
+    deliveryCity: true,
+    deliveryCountry: true,
+  
+    contacts: false,
+  });
   useEffect(() => {
     fetchClients();
   }, []);
@@ -106,9 +133,331 @@ function ManageClients({ onNavigate }) {
     setShowNewClientForm((prev) => !prev);
   };
 
+  const handlePrintClick = () => {
+    setShowPrintPanel(true);
+  };
+
   const handleClientCreated = () => {
     setShowNewClientForm(false);
     fetchClients();
+  };
+
+  const handleOpenPrintOptions = () => {
+    setShowPrintOptions((prev) => !prev);
+  };
+
+  const handlePrintOptionChange = (field) => {
+    setPrintFields((prev) => ({
+      ...prev,
+      [field]: !prev[field],
+    }));
+  };
+
+  const handlePrintClients = () => {
+    const selectedFields = Object.keys(printFields).filter(
+      (field) => printFields[field]
+    );
+
+    if (selectedFields.length === 0) {
+      alert("Please select at least one field to print.");
+      return;
+    }
+
+    const fieldLabels = {
+      number: "Number",
+      name: "Name",
+      companyRegistrationNumber: "Company registration number",
+      vatNo: "VAT no.",
+      phone: "Phone",
+      mobilePhone: "Mobile phone",
+      phoneHome: "Phone (home)",
+      fax: "Fax",
+      email: "Email",
+      yourReference: "Your reference",
+    
+      addressCareOf: "C/O",
+      addressStreetAddress: "Address",
+      addressZipCode: "Zip code",
+      addressCity: "City",
+      addressCountry: "Country",
+    
+      deliveryCareOf: "C/O",
+      deliveryStreetAddress: "Delivery address street address",
+      deliveryZipCode: "Delivery address zip code",
+      deliveryCity: "Delivery address city",
+      deliveryCountry: "Delivery address country",
+    
+      contacts: "Contacts",
+    };
+
+    const getFieldValue = (client, field) => {
+      switch (field) {
+        case "number":
+          return client.number || client.id || "";
+    
+        case "name":
+          return getClientDisplayName(client);
+    
+        case "companyRegistrationNumber":
+          return client.companyRegNo || "";
+    
+        case "vatNo":
+          return client.vatNo || "";
+    
+        case "phone":
+          return client.phone || "";
+    
+        case "mobilePhone":
+          return client.phoneMobile || "";
+    
+        case "phoneHome":
+          return client.phoneHome || "";
+    
+        case "fax":
+          return client.fax || "";
+    
+        case "email":
+          return client.email || "";
+    
+        case "yourReference":
+          return client.yourReference || "";
+    
+        case "addressCareOf":
+          return client.address?.careOf || "";
+    
+        case "addressStreetAddress":
+          return client.address?.streetAddress || "";
+    
+        case "addressZipCode":
+          return client.address?.zipCode || "";
+    
+        case "addressCity":
+          return client.address?.city || "";
+    
+        case "addressCountry":
+          return client.address?.country || "";
+
+        case "deliveryCareOf":
+          return client.deliveryAddress?.careOf || "";
+    
+        case "deliveryStreetAddress":
+          return client.deliveryAddress?.streetAddress || "";
+    
+        case "deliveryZipCode":
+          return client.deliveryAddress?.zipCode || "";
+    
+        case "deliveryCity":
+          return client.deliveryAddress?.city || "";
+    
+        case "deliveryCountry":
+          return client.deliveryAddress?.country || "";
+    
+        case "contacts":
+          return Array.isArray(client.contacts)
+            ? client.contacts
+                .map((contact) => contact.name || contact.email || "")
+                .filter(Boolean)
+                .join(", ")
+            : "";
+    
+        default:
+          return "";
+      }
+    };
+
+    const escapeHtml = (value) => {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    };
+
+    const headerHtml = selectedFields
+      .map((field) => `<th>${fieldLabels[field]}</th>`)
+      .join("");
+
+    const rowsHtml = clients
+      .map(
+        (client) => `
+          <tr>
+            ${selectedFields
+              .map(
+                (field) =>
+                  `<td>${escapeHtml(getFieldValue(client, field))}</td>`
+              )
+              .join("")}
+          </tr>
+        `
+      )
+      .join("");
+
+    const printWindow = window.open("", "_blank");
+
+    if (!printWindow) {
+      alert("Please allow pop-ups to print the client list.");
+      return;
+    }
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Client List</title>
+
+          <style>
+            @page {
+              size: landscape;
+              margin: 10mm;
+            }
+
+            body {
+              font-family: Arial, sans-serif;
+              padding: 10px;
+              color: #222;
+            }
+
+            h1 {
+              text-align: center;
+              margin: 0 0 20px;
+              font-size: 24px;
+            }
+
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              table-layout: auto;
+            }
+
+            th,
+            td {
+              border: 1px solid #999;
+              padding: 7px;
+              text-align: left;
+              vertical-align: top;
+              font-size: 11px;
+            }
+
+            th {
+              background-color: #f2f2f2;
+              font-weight: bold;
+            }
+
+            tr:nth-child(even) {
+              background-color: #fafafa;
+            }
+
+            tr {
+              page-break-inside: avoid;
+            }
+          </style>
+        </head>
+
+        <body>
+          <h1>Client list</h1>
+
+          <table>
+            <thead>
+              <tr>
+                ${headerHtml}
+              </tr>
+            </thead>
+
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+
+    printWindow.onload = () => {
+      printWindow.focus();
+      const printWindow = window.open("", "_blank");
+
+if (!printWindow) {
+  alert("Please allow pop-ups for this website.");
+  return;
+}
+
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Client list</title>
+              <style>
+                body {
+                  font-family: Arial, sans-serif;
+                  margin: 20px;
+                }
+
+                h1 {
+                  text-align: center;
+                  font-size: 22px;
+                  margin-bottom: 20px;
+                }
+
+                table {
+                  width: 100%;
+                  border-collapse: collapse;
+                  font-size: 12px;
+                }
+
+                th,
+                td {
+                  border: 1px solid #999;
+                  padding: 6px;
+                  text-align: left;
+                }
+
+                th {
+                  font-weight: bold;
+                  background: #f2f2f2;
+                }
+              </style>
+            </head>
+
+            <body>
+              <h1>Client list</h1>
+
+              <table>
+                <thead>
+                  <tr>
+                    ${Object.keys(printFields)
+                      .filter((field) => printFields[field])
+                      .map((field) => `<th>${fieldLabels[field]}</th>`)
+                      .join("")}
+                  </tr>
+                </thead>
+
+                <tbody>
+                  ${clients
+                    .map(
+                      (client) => `
+                        <tr>
+                          ${Object.keys(printFields)
+                            .filter((field) => printFields[field])
+                            .map(
+                              (field) =>
+                                `<td>${getFieldValue(client, field)}</td>`
+                            )
+                            .join("")}
+                        </tr>
+                      `
+                    )
+                    .join("")}
+                </tbody>
+              </table>
+            </body>
+          </html>
+        `);
+
+      printWindow.document.close();
+      printWindow.close();
+    };
   };
 
   // Filters the client list by name, city, or email as the user types.
@@ -138,7 +487,11 @@ function ManageClients({ onNavigate }) {
           <IconUser />
           New client
         </button>
-        <button className="btn-outline btn-print">
+
+        <button
+          className="btn-outline btn-print"
+          onClick={handlePrintClick}
+        >
           <IconPrinter />
           Print list of clients
         </button>
@@ -165,6 +518,247 @@ function ManageClients({ onNavigate }) {
           />
         )}
 
+        {showPrintPanel && (
+          <div className="print-options">
+
+            <h2>Included fields</h2>
+
+            <div className="print-fields-grid">
+
+              <label>
+                <input
+                  type="checkbox"
+                  checked={printFields.number}
+                  onChange={() => handlePrintOptionChange("number")}
+                />
+                <span>Number</span>
+              </label>
+
+              <label>
+                <input
+                  type="checkbox"
+                  checked={printFields.name}
+                  onChange={() => handlePrintOptionChange("name")}
+                />
+                <span>Name</span>
+              </label>
+
+              <label>
+                <input
+                  type="checkbox"
+                  checked={printFields.companyRegistrationNumber}
+                  onChange={() =>
+                    handlePrintOptionChange("companyRegistrationNumber")
+                  }
+                />
+                <span>Company registration number</span>
+              </label>
+
+              <label>
+                <input
+                  type="checkbox"
+                  checked={printFields.vatNo}
+                  onChange={() => handlePrintOptionChange("vatNo")}
+                />
+                <span>VAT no.</span>
+              </label>
+
+              <label>
+                <input
+                  type="checkbox"
+                  checked={printFields.phone}
+                  onChange={() => handlePrintOptionChange("phone")}
+                />
+                <span>Phone</span>
+              </label>
+
+              <label>
+                <input
+                  type="checkbox"
+                  checked={printFields.mobilePhone}
+                  onChange={() => handlePrintOptionChange("mobilePhone")}
+                />
+                <span>Mobile phone</span>
+              </label>
+
+              <label>
+                <input
+                  type="checkbox"
+                  checked={printFields.phoneHome}
+                  onChange={() => handlePrintOptionChange("phoneHome")}
+                />
+                <span>Phone (home)</span>
+              </label>
+
+              <label>
+                <input
+                  type="checkbox"
+                  checked={printFields.fax}
+                  onChange={() => handlePrintOptionChange("fax")}
+                />
+                <span>Fax</span>
+              </label>
+
+              <label>
+                <input
+                  type="checkbox"
+                  checked={printFields.email}
+                  onChange={() => handlePrintOptionChange("email")}
+                />
+                <span>Email</span>
+              </label>
+
+              <label>
+                <input
+                  type="checkbox"
+                  checked={printFields.yourReference}
+                  onChange={() => handlePrintOptionChange("yourReference")}
+                />
+                <span>Your reference</span>
+              </label>
+
+              {/* Main Address */}
+
+              <label>
+                <input
+                  type="checkbox"
+                  checked={printFields.addressCareOf}
+                  onChange={() => handlePrintOptionChange("addressCareOf")}
+                />
+                <span>C/O</span>
+              </label>
+
+              <label>
+                <input
+                  type="checkbox"
+                  checked={printFields.addressStreetAddress}
+                  onChange={() =>
+                    handlePrintOptionChange("addressStreetAddress")
+                  }
+                />
+                <span>Address</span>
+              </label>
+
+              <label>
+                <input
+                  type="checkbox"
+                  checked={printFields.addressZipCode}
+                  onChange={() => handlePrintOptionChange("addressZipCode")}
+                />
+                <span>Zip code</span>
+              </label>
+
+              <label>
+                <input
+                  type="checkbox"
+                  checked={printFields.addressCity}
+                  onChange={() => handlePrintOptionChange("addressCity")}
+                />
+                <span>City</span>
+              </label>
+
+              <label>
+                <input
+                  type="checkbox"
+                  checked={printFields.addressCountry}
+                  onChange={() => handlePrintOptionChange("addressCountry")}
+                />
+                <span>Country</span>
+              </label>
+
+              {/* Delivery Address */}
+
+              <label>
+                <input
+                  type="checkbox"
+                  checked={printFields.deliveryCareOf}
+                  onChange={() => handlePrintOptionChange("deliveryCareOf")}
+                />
+                <span>Delivery C/O</span>
+              </label>
+
+              <label>
+                <input
+                  type="checkbox"
+                  checked={printFields.deliveryStreetAddress}
+                  onChange={() =>
+                    handlePrintOptionChange("deliveryStreetAddress")
+                  }
+                />
+                <span>Delivery address street address</span>
+              </label>
+
+              <label>
+                <input
+                  type="checkbox"
+                  checked={printFields.deliveryZipCode}
+                  onChange={() =>
+                    handlePrintOptionChange("deliveryZipCode")
+                  }
+                />
+                <span>Delivery address zip code</span>
+              </label>
+
+              <label>
+                <input
+                  type="checkbox"
+                  checked={printFields.deliveryCity}
+                  onChange={() =>
+                    handlePrintOptionChange("deliveryCity")
+                  }
+                />
+                <span>Delivery address city</span>
+              </label>
+
+              <label>
+                <input
+                  type="checkbox"
+                  checked={printFields.deliveryCountry}
+                  onChange={() =>
+                    handlePrintOptionChange("deliveryCountry")
+                  }
+                />
+                <span>Delivery address country</span>
+              </label>
+
+              <label>
+                <input
+                  type="checkbox"
+                  checked={printFields.contacts}
+                  onChange={() => handlePrintOptionChange("contacts")}
+                />
+                <span>Contacts</span>
+              </label>
+
+            </div>
+
+            <div className="print-options-divider"></div>
+
+            <div className="print-options-buttons">
+
+              <button
+                className="btn-print-selected"
+                onClick={handlePrintClients}
+              >
+                <IconPrinter />
+                Print list of clients
+              </button>
+
+              <button className="btn-export-csv">
+                Export as csv file
+              </button>
+
+              <button
+                className="btn-cancel-print"
+                onClick={() => setShowPrintPanel(false)}
+              >
+                Cancel
+              </button>
+
+            </div>
+
+          </div>
+        )}
         <div className="clients-table-card">
           <table className="clients-table">
             <thead>
@@ -204,7 +798,8 @@ function ManageClients({ onNavigate }) {
                         className="link-cell"
                         onClick={(e) => {
                           e.preventDefault();
-                          onNavigate && onNavigate("clientDetail", client.id);
+                          onNavigate &&
+                            onNavigate("clientDetail", client.id);
                         }}
                       >
                         {getClientDisplayName(client)}
@@ -217,17 +812,16 @@ function ManageClients({ onNavigate }) {
                         <a
                           href={`mailto:${client.email}`}
                           className="link-cell"
-                          onClick={(e) => {
-                            // Plain left-click navigates to the client detail
-                            // page, same as clicking the name. Ctrl/Cmd-click
-                            // or middle-click still lets the browser open the
-                            // mailto: link as usual (e.g. to open a new tab),
-                            // since we only intercept the plain click case.
-                            if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) {
+                          onClick={(e) => {if (e.ctrlKey ||e.metaKey ||e.shiftKey ||e.button === 1) {
                               return;
                             }
                             e.preventDefault();
-                            onNavigate && onNavigate("clientDetail", client.id);
+
+                            onNavigate &&
+                              onNavigate(
+                                "clientDetail",
+                                client.id
+                              );
                           }}
                         >
                           {client.email}

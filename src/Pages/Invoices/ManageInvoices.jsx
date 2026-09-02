@@ -79,7 +79,7 @@ const mapInvoice = (inv) => ({
   sent: inv.sent ?? (inv.status !== "DRAFT" && inv.status !== "CANCELLED"),
 });
 
-export default function ManageInvoices({ onNavigate, invoices: invoicesProp }) {
+export default function ManageInvoices({ onNavigate, invoices: invoicesProp, clientId }) {
   const [invoices, setInvoices] = useState((invoicesProp || []).map(mapInvoice));
   const [loading, setLoading] = useState(!invoicesProp);
   const [error, setError] = useState(null);
@@ -96,7 +96,7 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp }) {
     setLoading(true);
     setError(null);
 
-    InvoiceService.getAllInvoices()
+    clientId ? InvoiceService.getInvoicesByClientId(clientId): InvoiceService.getAllInvoices()
       .then(({ data }) => {
         if (cancelled) return;
         const list = Array.isArray(data) ? data : data?.content ?? [];

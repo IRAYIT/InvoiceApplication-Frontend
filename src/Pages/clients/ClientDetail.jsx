@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import ClientService from "../../services/ClientService";
+import InvoicesService from "../../services/InvoicesService";
+import PaymentModal from "../Invoices/PaymentModal";
+import ManageInvoices from "../Invoices/ManageInvoices";
 import "./ClientDetail.css";
 
 const IconEstimate = () => (
@@ -25,9 +28,15 @@ function ClientDetail({ clientId, onNavigate }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("Invoices");
+  const [invoices, setInvoices] = useState([]);
+  const [paymentModalInvoice, setPaymentModalInvoice] = useState(null);
+  const [sentInvoices, setSentInvoices] = useState({});
 
   useEffect(() => {
-    if (clientId) fetchClient();
+    if (clientId) {
+      fetchClient();
+      fetchInvoices();
+    }
   }, [clientId]);
 
   const fetchClient = async () => {
@@ -42,6 +51,62 @@ function ClientDetail({ clientId, onNavigate }) {
       setLoading(false);
     }
   };
+
+  const fetchInvoices = async () => {
+    try {
+      const response = await InvoicesService.getInvoicesByClientId(clientId);
+  
+      const list = Array.isArray(response.data) ? response.data : [];
+  
+      const mappedInvoices = list.map((invoice) => ({
+        ...invoice,
+        total: invoice.total ?? invoice.totalAmount ?? 0,
+        vatAmount: invoice.vatAmount ?? invoice.taxAmount ?? 0,
+        paid: invoice.paid ?? invoice.status === "PAID",
+        sent:
+          invoice.sent ??
+          (invoice.status !== "DRAFT" && invoice.status !== "CANCELLED"),
+      }));
+  
+      setInvoices(mappedInvoices);
+    } catch (err) {
+      console.error("Error fetching client invoices:", err);
+      setInvoices([]);
+    }
+  };
+
+  const handlePaidCheckbox = (invoice) => {
+    if (invoice.paid) return;
+  
+    setPaymentModalInvoice(invoice);
+  };
+
+  const handlePaymentSaved = (summary) => {
+    setInvoices((prev) =>
+      prev.map((invoice) =>
+        invoice.id === summary.invoiceId
+          ? {
+              ...invoice,
+              total: summary.invoiceTotal ?? invoice.total,
+              totalAmount: summary.invoiceTotal ?? invoice.totalAmount,
+              paid: summary.paid,
+              status: summary.status,
+              amountPaid: summary.totalPaid,
+            }
+          : invoice
+      )
+    );
+  };
+
+  const handleSentCheckbox = (invoice) => {
+  setInvoices((prev) =>
+    prev.map((item) =>
+      item.id === invoice.id
+        ? { ...item, sent: !item.sent }
+        : item
+    )
+  );
+};
 
   const getDisplayName = (c) => {
     if (!c) return "";
@@ -217,11 +282,63 @@ function ClientDetail({ clientId, onNavigate }) {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td colSpan="5" className="cd-empty-row">
-                      No invoices yet for this client.
-                    </td>
-                  </tr>
+                    {invoices.length > 0 ? (
+                      invoices.map((invoice) => (
+                        <tr key={invoice.id}>
+                          <td>
+                            <a
+                              href="#invoice"
+                              className="client-link"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                onNavigate && onNavigate("viewInvoice", invoice.id);
+                              }}
+                            >
+                              {invoice.invoiceNumber}
+                            </a>
+                          </td>
+
+                          <td>
+                            {Number(invoice.totalAmount ?? invoice.total ?? 0).toLocaleString(
+                              "sv-SE",
+                              {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              }
+                            )}{" "}
+                            {invoice.currency}
+                          </td>
+
+                          <td>{invoice.dueDate || "—"}</td>
+
+                          <td>
+                            <input
+                              type="checkbox"
+                              checked={!!invoice.paid}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handlePaidCheckbox(invoice);
+                              }}
+                              onChange={() => {}}
+                            />
+                          </td>
+
+                          <td>
+                            <input
+                              type="checkbox"
+                              checked={!!invoice.sent}
+                              onChange={() => handleSentCheckbox(invoice)}
+                            />
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="5" className="cd-empty-row">
+                          No invoices yet for this client.
+                        </td>
+                      </tr>
+                    )}
                 </tbody>
               </table>
             </>
@@ -230,6 +347,18 @@ function ClientDetail({ clientId, onNavigate }) {
           )}
         </div>
       </div>
+
+      {paymentModalInvoice && (
+        <PaymentModal
+          invoice={paymentModalInvoice}
+          onClose={() => setPaymentModalInvoice(null)}
+          onSaved={(summary) => {
+            handlePaymentSaved(summary);
+            setPaymentModalInvoice(null);
+          }}
+        />
+      )}
+
     </div>
   );
 }
