@@ -50,11 +50,6 @@ const InvoiceService = {
     });
   },
 
-  // Download/view the generated invoice PDF
-  downloadInvoicePdf(id) {
-    return axios.get(`${API_BASE_URL}/${id}/pdf`, { responseType: "blob" });
-  },
-
   // Send invoice by postal mail
   sendInvoiceByPost(id, payload) {
     return axios.post(`${API_BASE_URL}/${id}/send/post`, payload);
@@ -63,6 +58,21 @@ const InvoiceService = {
   // Send invoice by e-invoice
   sendInvoiceByEInvoice(id, payload) {
     return axios.post(`${API_BASE_URL}/${id}/send/e-invoice`, payload);
+  },
+
+  // Download/view the generated invoice PDF
+  downloadInvoicePdf(id) {
+    return axios.get(`${API_BASE_URL}/${id}/pdf`, { responseType: "blob" });
+  },
+
+  // Toggle the plain Sent checkbox — distinct from the send-by-email/post/
+  // e-invoice endpoints, so history reads "Marked as sent"/"unsent"
+  markInvoiceSent(id) {
+    return axios.put(`${API_BASE_URL}/${id}/mark-sent`);
+  },
+
+  markInvoiceUnsent(id) {
+    return axios.put(`${API_BASE_URL}/${id}/mark-unsent`);
   },
 };
 

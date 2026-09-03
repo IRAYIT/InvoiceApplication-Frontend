@@ -168,16 +168,27 @@ const taxAmountOf = (row) => lineSubtotalOf(row) * (toNumber(row.taxPercent) / 1
  * EstimateForm
  *
  * Props:
- * - estimateId   optional — if provided, loads/edits that estimate
- *                (GET/PUT /api/v1/estimates/{id}). Omitted = create new.
- * - client       { id, name } — required when creating a new estimate.
- * - currentUser  string — default value for "Our reference" (local-only).
- * - onSaved      (savedEstimateDTO) => void
- * - onNavigate   (route) => void
- * - onEditClient () => void — pencil icon next to Client
+ * - estimateId      optional — if provided, loads/edits that estimate
+ *                   (GET/PUT /api/v1/estimates/{id}). Takes priority over
+ *                   duplicateFromId if both are somehow passed.
+ * - duplicateFromId optional — if provided (and estimateId is not), the
+ *                   form pre-fills client/dates/references/items from
+ *                   that estimate, but still CREATES a new one on save
+ *                   (fresh estimate number, today's estimate date, valid
+ *                   to recomputed from today + payment terms). Used by
+ *                   EstimateDetail's "Duplicate" confirmation flow.
+ * - client          { id, name } — required when creating a new estimate
+ *                   from scratch (ignored if estimateId or
+ *                   duplicateFromId is set, since those load their own
+ *                   client).
+ * - currentUser     string — default value for "Our reference" (local-only).
+ * - onSaved         (savedEstimateDTO) => void
+ * - onNavigate      (route) => void
+ * - onEditClient    () => void — pencil icon next to Client
  */
 export default function EstimateForm({
   estimateId,
+  duplicateFromId,
   client,
   currentUser = "",
   onSaved,
@@ -185,8 +196,9 @@ export default function EstimateForm({
   onEditClient,
 }) {
   const isEditMode = Boolean(estimateId);
+  const isDuplicateMode = !isEditMode && Boolean(duplicateFromId);
 
-  const [loading, setLoading] = useState(isEditMode);
+  const [loading, setLoading] = useState(isEditMode || isDuplicateMode);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
@@ -268,6 +280,56 @@ export default function EstimateForm({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [estimateId, isEditMode]);
+
+  // Pre-fill from an existing estimate when duplicating — this still
+  // CREATES a new estimate on save (isEditMode stays false): no
+  // estimateNumber carried over, no id on any item, fresh estimate date
+  // (today) and a validUntil recomputed from today + payment terms.
+  // Client/references/items carry over. Mirrors InvoiceForm's
+  // duplicateFromId behavior.
+  useEffect(() => {
+    if (!isDuplicateMode) return;
+    let cancelled = false;
+
+    setLoading(true);
+    setError(null);
+
+    EstimateService.getEstimateById(duplicateFromId)
+      .then(({ data }) => {
+        if (cancelled) return;
+        setSelectedClient({ id: data.clientId, name: data.clientName });
+        setIssueDate(todayIso());
+        setValidUntilTouched(false); // let the effect above recompute it from today
+        setYourReference("");
+        setOurReference(currentUser);
+        setItems(
+          Array.isArray(data.items) && data.items.length
+            ? data.items.map((it) => ({
+                rowKey: nextRowId(),
+                id: null, // duplicated rows are new rows, not edits of existing ones
+                productId: it.productId ?? null,
+                description: it.description ?? "",
+                quantity: it.quantity ?? 1,
+                unit: it.unit ?? "",
+                unitPrice: it.unitPrice ?? 0,
+                taxPercent: it.taxPercent ?? 0,
+              }))
+            : [emptyRow()]
+        );
+      })
+      .catch((err) => {
+        if (!cancelled)
+          setError(err?.response?.data?.message || "Failed to load the estimate to duplicate.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [duplicateFromId, isDuplicateMode]);
 
   const updateRow = useCallback((rowKey, patch) => {
     setItems((prev) => prev.map((row) => (row.rowKey === rowKey ? { ...row, ...patch } : row)));

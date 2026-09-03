@@ -2,6 +2,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import InvoiceService from "../../services/InvoicesService";
 import "./ManageInvoices.css";
 import PaymentModal from "./PaymentModal";
+import SendInvoicePanel from "./SendInvoicePanel";
+import ConfirmDialog from "./ConfirmDialog";
+
 /* ── Small inline icons (no external icon package required) ─────────── */
 const IconGear = (props) => (
   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
@@ -33,6 +36,43 @@ const IconInvoiceDoc = (props) => (
     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
     <path d="M14 2v6h6" strokeLinecap="round" strokeLinejoin="round" />
     <path d="M9 13h6M9 17h6" strokeLinecap="round" />
+  </svg>
+);
+
+/* ── Row-menu icons (kept consistent with ViewInvoice's icon set) ───── */
+const IconClient = (props) => (
+  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
+    <circle cx="12" cy="8" r="3.2" />
+    <path d="M5 20c0-3.6 3.1-6.3 7-6.3s7 2.7 7 6.3" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const IconPrint = (props) => (
+  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
+    <path d="M6 9V3h12v6" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M6 18H4a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M6 14h12v7H6z" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const IconDuplicate = (props) => (
+  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
+    <rect x="9" y="9" width="12" height="12" rx="1.5" />
+    <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const IconMail = (props) => (
+  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
+    <rect x="3" y="5" width="18" height="14" rx="2" />
+    <path d="M3 7l9 6 9-6" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const IconCreditNote = (props) => (
+  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M9 9l6 6M15 9l-6 6" strokeLinecap="round" />
   </svg>
 );
 
@@ -83,10 +123,13 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp }) {
   const [invoices, setInvoices] = useState((invoicesProp || []).map(mapInvoice));
   const [loading, setLoading] = useState(!invoicesProp);
   const [error, setError] = useState(null);
+  const [actionError, setActionError] = useState(null);
   const [year, setYear] = useState(new Date().getFullYear());
   const [search, setSearch] = useState("");
   const [openMenuId, setOpenMenuId] = useState(null);
   const [paymentModalInvoice, setPaymentModalInvoice] = useState(null);
+  const [sendPanelInvoiceId, setSendPanelInvoiceId] = useState(null);
+  const [duplicateConfirmInvoice, setDuplicateConfirmInvoice] = useState(null);
 
   // Load invoices from the backend unless the caller already passed a list in.
   useEffect(() => {
@@ -114,6 +157,25 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp }) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [invoicesProp]);
+
+  // Close the row-actions dropdown when clicking anywhere outside it.
+  // Every trigger button + its dropdown panel live inside a ".row-menu"
+  // wrapper, so closest(".row-menu") tells us whether the click was
+  // inside the open menu or somewhere else on the page.
+  useEffect(() => {
+    if (openMenuId === null) return;
+
+    const handleClickOutside = (e) => {
+      if (!e.target.closest(".row-menu")) {
+        setOpenMenuId(null);
+      }
+    };
+
+    // mousedown (not click) so this runs before the row-menu button's
+    // own onClick toggle, avoiding a race between the two handlers.
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openMenuId]);
 
   const rangeStart = `${year}-01-01`;
   const rangeEnd = `${year}-12-31`;
@@ -197,6 +259,56 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp }) {
     onNavigate && onNavigate("viewInvoice", inv.id);
   };
 
+  const handleGoToClient = (inv) => {
+    setOpenMenuId(null);
+    onNavigate && onNavigate("clientDetail", inv.clientId);
+  };
+
+  const handleViewPdf = async (inv) => {
+    setOpenMenuId(null);
+    setActionError(null);
+    try {
+      const { data } = await InvoiceService.downloadInvoicePdf(inv.id);
+      const url = window.URL.createObjectURL(new Blob([data], { type: "application/pdf" }));
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (err) {
+      setActionError(err?.response?.data?.message || "Failed to open the PDF.");
+    }
+  };
+
+  const handleDuplicateClick = (inv) => {
+    setOpenMenuId(null);
+    setDuplicateConfirmInvoice(inv);
+  };
+
+  const handleConfirmDuplicate = () => {
+    const inv = duplicateConfirmInvoice;
+    setDuplicateConfirmInvoice(null);
+    onNavigate && onNavigate("duplicateInvoice", inv.id);
+  };
+
+  const handleCredit = (inv) => {
+    setOpenMenuId(null);
+    onNavigate && onNavigate("creditInvoice", inv.id);
+  };
+
+  // Toggles the inline SendInvoicePanel for a given row — same component
+  // ViewInvoice uses, so the send flow is identical everywhere.
+  const handleSendClick = (inv) => {
+    setOpenMenuId(null);
+    setSendPanelInvoiceId((cur) => (cur === inv.id ? null : inv.id));
+  };
+
+  const handleInvoiceSentInList = (invoiceId) => {
+    setInvoices((prev) =>
+      prev.map((inv) =>
+        inv.id === invoiceId
+          ? { ...inv, sent: true, status: inv.status === "DRAFT" ? "SENT" : inv.status }
+          : inv
+      )
+    );
+  };
+
   if (loading) {
     return (
       <main className="content">
@@ -224,6 +336,8 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp }) {
       <div className="page-header">
         <h1>Invoices</h1>
       </div>
+
+      {actionError && <div className="error-state">{actionError}</div>}
 
       <div className="toolbar">
         <div className="left-actions">
@@ -291,70 +405,101 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp }) {
                 </div>
 
                 {group.list.map((inv) => (
-                  <div className="status-table-row" key={inv.id}>
-                    <div>{inv.invoiceNumber}</div>
-                    <div>
-                      <a
-                        href="#invoice"
-                        className="client-link"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleOpenInvoice(inv);
-                        }}
-                      >
-                        {inv.clientName}
-                      </a>
-                    </div>
-                    <div>{formatKr(inv.total)}</div>
-                    <div>{inv.dueDate}</div>
-                    <div>
-                      <input
-                        type="checkbox"
-                        checked={!!inv.paid}
-                        onClick={(e) => {
-                          e.preventDefault(); // stop native checkbox flash-toggle
-                          handlePaidCheckbox(inv); // opens the payment modal (or no-ops if already paid)
-                        }}
-                        onChange={() => {}} // no-op: silences the "controlled checkbox needs onChange" warning; onClick does the real work
-                      />
-                    </div>
-                    <div>
-                      <input
-                        type="checkbox"
-                        checked={!!inv.sent}
-                        onChange={() => toggleRowFlag(inv.id, "sent")}
-                      />
-                    </div>
-                    <div />
-                    <div className="row-menu">
-                      <button
-                        type="button"
-                        className="row-menu-btn"
-                        aria-label="Row actions"
-                        onClick={() => setOpenMenuId((prev) => (prev === inv.id ? null : inv.id))}
-                      >
-                        <IconGear />
-                        <IconChevronDown />
-                      </button>
+                  <React.Fragment key={inv.id}>
+                    <div className="status-table-row">
+                      <div>{inv.invoiceNumber}</div>
+                      <div>
+                        <a
+                          href="#invoice"
+                          className="client-link"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleOpenInvoice(inv);
+                          }}
+                        >
+                          {inv.clientName}
+                        </a>
+                      </div>
+                      <div>{formatKr(inv.total)}</div>
+                      <div>{inv.dueDate}</div>
+                      <div>
+                        <input
+                          type="checkbox"
+                          checked={!!inv.paid}
+                          onClick={(e) => {
+                            e.preventDefault(); // stop native checkbox flash-toggle
+                            handlePaidCheckbox(inv); // opens the payment modal (or no-ops if already paid)
+                          }}
+                          onChange={() => {}} // no-op: silences the "controlled checkbox needs onChange" warning; onClick does the real work
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="checkbox"
+                          checked={!!inv.sent}
+                          onChange={() => toggleRowFlag(inv.id, "sent")}
+                        />
+                      </div>
+                      <div />
+                      <div className="row-menu">
+                        <button
+                          type="button"
+                          className="row-menu-btn"
+                          aria-label="Row actions"
+                          onClick={() => setOpenMenuId((prev) => (prev === inv.id ? null : inv.id))}
+                        >
+                          <IconGear />
+                          <IconChevronDown />
+                        </button>
 
-                      {openMenuId === inv.id && (
-                        <div className="row-menu-dropdown">
-                          <button type="button" onClick={() => onNavigate && onNavigate("editInvoice", inv.id)}>
-                            Edit
-                          </button>
-                          <button type="button">Duplicate</button>
-                          <button type="button">Send</button>
-                          <button
-                            type="button"
-                            className="row-menu-danger"
-                            onClick={() => handleDeleteInvoice(inv.id)}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      )}
+                        {openMenuId === inv.id && (
+                          <div className="row-menu-dropdown">
+                            <button type="button" onClick={() => handleGoToClient(inv)}>
+                              <IconClient /> Go to client
+                            </button>
+                            <button type="button" onClick={() => handleViewPdf(inv)}>
+                              <IconPrint /> View as PDF (Print)
+                            </button>
+                            <button type="button" onClick={() => handleDuplicateClick(inv)}>
+                              <IconDuplicate /> Duplicate
+                            </button>
+                            <button type="button" onClick={() => handleSendClick(inv)}>
+                              <IconMail /> Send the invoice
+                            </button>
+                            <button type="button" onClick={() => handleCredit(inv)}>
+                              <IconCreditNote /> Credit/Partial credit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOpenMenuId(null);
+                                onNavigate && onNavigate("editInvoice", inv.id);
+                              }}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="row-menu-danger"
+                              onClick={() => handleDeleteInvoice(inv.id)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
+
+                    {sendPanelInvoiceId === inv.id && (
+                      <div className="row-send-panel-wrap" style={{ gridColumn: "1 / -1" }}>
+                        <SendInvoicePanel
+                          invoice={inv}
+                          onClose={() => setSendPanelInvoiceId(null)}
+                          onSent={() => handleInvoiceSentInList(inv.id)}
+                        />
+                      </div>
+                    )}
+                  </React.Fragment>
                 ))}
               </div>
             </section>
@@ -383,6 +528,14 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp }) {
           invoice={paymentModalInvoice}
           onClose={() => setPaymentModalInvoice(null)}
           onSaved={handlePaymentSaved}
+        />
+      )}
+
+      {duplicateConfirmInvoice && (
+        <ConfirmDialog
+          message="Do you want to start a new invoice with the content of this as a starting point?"
+          onCancel={() => setDuplicateConfirmInvoice(null)}
+          onConfirm={handleConfirmDuplicate}
         />
       )}
     </main>

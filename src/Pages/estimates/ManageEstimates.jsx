@@ -261,12 +261,15 @@ export default function ManageEstimates({ onNavigate }) {
                       </a>
                     </div>
                     <div>
+                      {/* Opens the same estimate detail/preview page as the
+                          estimate-number link above (matches the reference
+                          behavior for clicking a client name in the list). */}
                       <a
-                        href="#client"
+                        href="#estimate"
                         className="es-client-link"
                         onClick={(e) => {
                           e.preventDefault();
-                          onNavigate && onNavigate("clientDetail", est.clientId);
+                          onNavigate && onNavigate("estimateDetail", est.id);
                         }}
                       >
                         {est.clientName}
