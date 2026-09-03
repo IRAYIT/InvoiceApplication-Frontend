@@ -8,6 +8,7 @@ import EditClientForm from "./Pages/clients/EditClientForm";
 
 import ManageInvoices from "./Pages/Invoices/ManageInvoices";
 import InvoiceForm from "./Pages/Invoices/InvoiceForm";
+import EditInvoice from "./Pages/Invoices/EditInvoice";
 import ViewInvoice from "./Pages/Invoices/ViewInvoice";
 
 import EstimateForm from "./Pages/estimates/EstimateForm";
@@ -22,20 +23,27 @@ import ProductDetail from "./Pages/Products/ProductDetail";
 
 import "./App.css";
 
+function getInitialRouteFromUrl() {
+  const match = window.location.pathname.match(/^\/invoices\/([^/]+)\/?$/);
+  if (!match) return null;
+  const rawId = match[1];
+  const id = /^\d+$/.test(rawId) ? Number(rawId) : rawId;
+  return { page: "viewInvoice", id };
+}
+
+const initialRoute = getInitialRouteFromUrl();
+
 function App() {
-  const [activePage, setActivePage] = useState("invoices");
+  const [activePage, setActivePage] = useState(initialRoute?.page ?? "invoices");
   const [selectedClientId, setSelectedClientId] = useState(null);
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [selectedEstimateId, setSelectedEstimateId] = useState(null);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
-  const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState(initialRoute?.id ?? null);
   const [pendingInvoiceClient, setPendingInvoiceClient] = useState(null);
   const [pendingOrderClient, setPendingOrderClient] = useState(null);
 
-  // `extra` is optional — currently used by EstimateDetail's
-  // "Create invoice" shortcut and by client shortcuts to "New order",
-  // to pre-fill the client on the new invoice/order form, since
-  // there's no real estimate->invoice conversion endpoint.
+
   const navigate = (page, id = null, extra = null) => {
     if (page === "clientDetail" || page === "editClient") {
       setSelectedClientId(id);
@@ -43,13 +51,15 @@ function App() {
     if (page === "productDetail") {
       setSelectedProductId(id);
     }
-    if (page === "editEstimate" || page === "estimateDetail") {
+
+    if (page === "editEstimate" || page === "estimateDetail" || page === "duplicateEstimate") {
       setSelectedEstimateId(id);
     }
     if (page === "editOrder") {
       setSelectedOrderId(id);
     }
-    if (page === "viewInvoice" || page === "editInvoice") {
+ 
+    if (page === "viewInvoice" || page === "editInvoice" || page === "duplicateInvoice") {
       setSelectedInvoiceId(id);
     }
     if (page === "newInvoice") {
@@ -79,11 +89,18 @@ function App() {
       case "viewInvoice":
         return <ViewInvoice invoiceId={selectedInvoiceId} onNavigate={navigate} />;
       case "editInvoice":
-        return <InvoiceForm invoiceId={selectedInvoiceId} onNavigate={navigate} />;
+    
+        return (
+          <EditInvoice
+            invoiceId={selectedInvoiceId}
+            onNavigate={navigate}
+            onEditClient={(clientId) => navigate("editClient", clientId)}
+          />
+        );
+      case "duplicateInvoice":
+        return <InvoiceForm duplicateFromId={selectedInvoiceId} onNavigate={navigate} />;
 
-      // "estimates" now shows the list page (matches how "invoices" ->
-      // ManageInvoices works), with the form reserved for actually
-      // creating/editing one.
+      
       case "estimates":
         return <ManageEstimates onNavigate={navigate} />;
       case "newEstimate":
@@ -92,6 +109,9 @@ function App() {
         return <EstimateForm estimateId={selectedEstimateId} onNavigate={navigate} />;
       case "estimateDetail":
         return <EstimateDetail estimateId={selectedEstimateId} onNavigate={navigate} />;
+
+      case "duplicateEstimate":
+        return <EstimateForm duplicateFromId={selectedEstimateId} onNavigate={navigate} />;
 
       // "orders" mirrors the estimates/invoices pattern: a list page
       // plus a shared OrderForm reused for both create and edit.

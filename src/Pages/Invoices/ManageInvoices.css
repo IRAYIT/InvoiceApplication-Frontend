@@ -306,7 +306,10 @@ body {
 
 .invoice-area {
   padding: 0 70px 60px;
-  min-height: calc(100vh - 320px);
+  /* min-height removed — it was forcing the footer down to fill the
+     viewport (position: absolute + a ~full-viewport-height container),
+     which is why our footer had a big empty gap above it while the
+     reference's footer just flows right after the summary line. */
   position: relative;
 }
 
@@ -554,12 +557,12 @@ body {
   font-size: 13.5px;
 }
 
-/* Footer */
-
+/* Footer — now flows naturally after .summary instead of being pinned
+   to the bottom of an artificially tall .invoice-area (see note above).
+   Matches the reference, where the footer sits right under the last
+   table with normal spacing regardless of how many rows are above it. */
 .footer {
-  position: absolute;
-  bottom: 30px;
-  left: 50px;
+  margin-top: 40px;
   display: flex;
   gap: 40px;
   color: #3b647f;

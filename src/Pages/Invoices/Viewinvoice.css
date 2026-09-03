@@ -1,3 +1,31 @@
+/* Fallback brand tokens — same values as ClientsPage.css's :root, so
+   the "Send the invoice" / "Edit invoice" buttons can match the "New
+   client" / "Print list of clients" buttons even if this page doesn't
+   happen to load ClientForm.css. If those globals already exist on
+   the page, these simply go unused (var() prefers the real ones only
+   when declared here — so keep this block scoped, not :root, to avoid
+   fighting the real definitions). */
+.invoice-view {
+  --brand-blue: #3f7fe0;
+  --brand-blue-deep: #2f66c2;
+  --brand-gold: #f5c518;
+  --brand-gold-deep: #e0af0a;
+  --brand-gradient: linear-gradient(
+    120deg,
+    var(--brand-blue) 0%,
+    #6f9de8 35%,
+    #b7c96e 65%,
+    var(--brand-gold) 100%
+  );
+  --brand-gradient-hover: linear-gradient(
+    120deg,
+    var(--brand-blue-deep) 0%,
+    #5686d6 35%,
+    #a3b85a 65%,
+    var(--brand-gold-deep) 100%
+  );
+}
+
 .invoice-page-title {
   font-size: 26px;
   font-weight: 600;
@@ -52,9 +80,6 @@
   padding: 16px 18px;
 }
 
-/* Two-column layout inside the meta box: dates/terms on the left,
-   Your/Our reference stacked on the right — matches the fakturan.nu
-   reference layout instead of stacking everything vertically. */
 .meta-box-columns {
   display: flex;
   gap: 28px;
@@ -190,6 +215,31 @@
   gap: 14px;
 }
 
+.invoice-extra-fields {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px dashed #d8dbe0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.extra-field-line {
+  font-size: 13px;
+}
+
+.extra-field-label {
+  display: block;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 2px;
+}
+
+.extra-field-text {
+  color: #333;
+  white-space: pre-wrap;
+}
+
 .footer-box {
   display: flex;
   gap: 40px;
@@ -213,11 +263,42 @@
   color: #444;
 }
 
+/* ── Branding footer box ("sent via [app]") ────────────────── */
+.footer-brand-box {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid #e6e8ec;
+  border-radius: 4px;
+  padding: 14px 18px;
+}
+
+.footer-brand-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.footer-brand-text {
+  font-size: 13px;
+  color: #333;
+  line-height: 1.5;
+}
+
+.footer-brand-text strong {
+  color: #222;
+  font-weight: 700;
+}
+
 /* ── Sidebar ──────────────────────────────────────────────── */
+/* Reference uses noticeably more vertical rhythm between blocks
+   (buttons / links / paid-sent / history) than a flat 16px gap. */
 .invoice-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 22px;
   position: sticky;
   top: 16px;
   padding-right: 6px;
@@ -233,57 +314,139 @@
   font-size: 13px;
 }
 
-/* Solid green CTA — matches the fakturan.nu reference exactly. */
+/* Both CTA buttons are now the same height/weight, matching the
+   reference where "Send the invoice" and "Edit invoice" read as a
+   matched pair rather than one dominant + one small button. */
 .btn-send {
-  background: #4caf50;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--brand-gradient);
+  background-size: 100% 100%;
   color: #fff;
-  border: none;
+  border: 1px solid transparent;
   border-radius: 4px;
-  padding: 14px 16px;
-  font-size: 16px;
+  padding: 18px 20px;
+  font-size: 17px;
   font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  letter-spacing: 0.2px;
+  box-shadow:
+    0 3px 10px -2px rgba(63, 127, 224, 0.45),
+    0 1px 2px rgba(224, 175, 10, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease;
+}
+
+/* Diagonal shine sweep, same mechanic as the "New client" button */
+.btn-send::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.45) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-20deg);
+  transition: left 0.65s ease;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .btn-send:hover {
-  background-color: #43a047;
+  background: var(--brand-gradient-hover);
+  background-size: 100% 100%;
+  box-shadow:
+    0 8px 22px -4px rgba(63, 127, 224, 0.55),
+    0 2px 8px -1px rgba(224, 175, 10, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-send:hover::before {
+  left: 130%;
+}
+
+.btn-send:active {
+  transform: scale(0.98) translateY(0);
+  box-shadow:
+    0 1px 3px -1px rgba(63, 127, 224, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .btn-send-sent {
-  background: #a5d6a7;
+  background: var(--brand-gradient);
 }
 
 .btn-send-sent:hover {
-  background: #a5d6a7;
+  background: var(--brand-gradient-hover);
 }
 
 .invoice-sidebar .btn-outline {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
   background: #fff;
-  border: 1px solid #d7dae0;
+  border: 1px solid var(--brand-blue);
   border-radius: 4px;
-  padding: 11px 16px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #222;
+  padding: 17px 20px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--brand-blue-deep);
   cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease,
+    transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+/* Same brand-gradient sweep-in used by the Print list of clients
+   button, so hovering Edit invoice feels like the same family. */
+.invoice-sidebar .btn-outline::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--brand-gradient);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  z-index: -1;
 }
 
 .invoice-sidebar .btn-outline:hover {
-  background: #f6f7f9;
+  color: #fff;
+  border-color: transparent;
+  background: transparent;
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 16px -4px rgba(63, 127, 224, 0.4),
+    0 2px 6px -1px rgba(224, 175, 10, 0.25);
 }
 
+.invoice-sidebar .btn-outline:hover::before {
+  opacity: 1;
+}
+
+.invoice-sidebar .btn-outline:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Reference gives each link its own "row" of space — icon + label with
+   generous air around it, not a tight stack. */
 .sidebar-links {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 30px;
+  margin-top: 4px;
 }
 
 .sidebar-links button,
 .sidebar-link {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   background: none;
   border: none;
   color: #4caf50;
@@ -300,16 +463,29 @@
   color: #388e3c;
 }
 
-.go-to-client {
-  margin-top: -2px;
+.sidebar-links svg,
+.go-to-client svg {
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
 }
 
+.go-to-client {
+  margin-top: 6px;
+}
+
+/* Paid/Sent — reference sits inside a soft gray panel spanning the
+   full sidebar width, right-aligned checkboxes, with real padding
+   rather than sitting flush against the surrounding elements. */
 .sidebar-flags {
   display: flex;
   justify-content: flex-end;
   flex-wrap: nowrap;
-  gap: 20px;
-  padding: 4px 4px 4px 0;
+  gap: 26px;
+  padding: 14px 16px;
+  margin-top: 6px;
+  background: #f6f7f9;
+  border-radius: 4px;
 }
 
 .sidebar-flags label {
@@ -323,7 +499,8 @@
 
 .sidebar-history {
   border-top: 1px solid #eceef1;
-  padding-top: 16px;
+  margin-top: 4px;
+  padding-top: 24px;
 }
 
 .history-heading {
@@ -333,11 +510,16 @@
   font-size: 19px;
   font-weight: 500;
   color: #4c8ff0;
-  margin-bottom: 14px;
+  margin-bottom: 18px;
+}
+
+.history-heading svg {
+  width: 18px;
+  height: 18px;
 }
 
 .history-entry {
-  padding: 8px 0;
+  padding: 10px 0;
 }
 
 .history-label {

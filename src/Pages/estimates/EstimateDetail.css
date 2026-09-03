@@ -125,8 +125,10 @@
   justify-self: end;
 }
 
+/* Solid blue — brand gradient reserved for the primary "Create invoice"
+   button only, not for headers/tables. */
 .ed-address-header {
-  background: var(--brand-gradient);
+  background: var(--brand-blue-deep);
   color: #fff;
   font-weight: 700;
   font-size: 13.5px;
@@ -151,8 +153,9 @@
   margin-bottom: 24px;
 }
 
+/* Solid blue — see note on .ed-address-header above. */
 .ed-items-table thead th {
-  background: var(--brand-gradient);
+  background: var(--brand-blue-deep);
   color: #fff;
   text-align: left;
   font-size: 13.5px;
@@ -300,6 +303,23 @@
   cursor: not-allowed;
 }
 
+.ed-edit-estimate-btn {
+  background: #fff;
+  border: 1px solid #dde4e7;
+  border-radius: 8px;
+  height: 52px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--brand-blue-deep);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.ed-edit-estimate-btn:hover {
+  background: #eef4fd;
+  border-color: var(--brand-blue);
+}
+
 .ed-action-links {
   background: #fff;
   border: 1px solid #dde4e7;
@@ -387,6 +407,68 @@
   font-size: 13px;
   color: #9db2bd;
   margin-top: 2px;
+}
+
+/* ===== Duplicate confirmation modal ===== */
+.ed-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 30, 38, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.ed-modal-dialog {
+  background: #fff;
+  border-radius: 10px;
+  width: 460px;
+  max-width: calc(100vw - 40px);
+  box-shadow: 0 12px 32px -8px rgba(15, 40, 60, 0.35);
+  overflow: hidden;
+}
+
+.ed-modal-body {
+  padding: 32px 30px;
+  text-align: center;
+  font-size: 17px;
+  line-height: 1.5;
+  color: #33586b;
+}
+
+.ed-modal-actions {
+  display: flex;
+  border-top: 1px solid #eef2f4;
+}
+
+.ed-modal-cancel,
+.ed-modal-confirm {
+  flex: 1;
+  border: none;
+  background: #fff;
+  padding: 16px;
+  font-size: 15.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.ed-modal-cancel {
+  color: #d9534f;
+  border-right: 1px solid #eef2f4;
+}
+
+.ed-modal-cancel:hover {
+  background: #fdf3f2;
+}
+
+.ed-modal-confirm {
+  color: #2fae55;
+}
+
+.ed-modal-confirm:hover {
+  background: #eefaf1;
 }
 
 @media (max-width: 1000px) {
