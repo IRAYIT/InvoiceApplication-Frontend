@@ -74,8 +74,8 @@ const getClientAddressLines = (client) => {
  * EstimateDetail
  *
  * Document-style preview of a single estimate with a right-hand action
- * panel and status history — opened by clicking an estimate number in
- * ManageEstimates.
+ * panel and status history — opened by clicking an estimate number or
+ * client name in ManageEstimates.
  *
  * Props:
  * - estimateId  required
@@ -86,7 +86,12 @@ export default function EstimateDetail({ estimateId, onNavigate }) {
   const [client, setClient] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [duplicating, setDuplicating] = useState(false);
+
+  // Duplicate is now a two-step flow: clicking "Duplicate" only opens a
+  // confirmation dialog; nothing is created until the user confirms, and
+  // even then it just hands off to EstimateForm in duplicate-prefill mode
+  // (see App.jsx's "duplicateEstimate" route) rather than POSTing here.
+  const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
 
   useEffect(() => {
     if (!estimateId) return;
@@ -131,33 +136,15 @@ export default function EstimateDetail({ estimateId, onNavigate }) {
     );
   };
 
-  // Genuinely achievable with the existing API: re-POST the same items
-  // under a new estimate, then go straight to the copy's detail page.
-  const handleDuplicate = async () => {
-    if (!estimate) return;
-    setDuplicating(true);
-    try {
-      const payload = {
-        clientId: estimate.clientId,
-        issueDate: estimate.issueDate,
-        validUntil: estimate.validUntil,
-        notes: estimate.notes,
-        items: (estimate.items || []).map((it) => ({
-          productId: it.productId ?? null,
-          description: it.description,
-          quantity: it.quantity,
-          unit: it.unit,
-          unitPrice: it.unitPrice,
-          taxPercent: it.taxPercent,
-        })),
-      };
-      const { data: created } = await EstimateService.createEstimate(payload);
-      onNavigate && onNavigate("estimateDetail", created.id);
-    } catch (err) {
-      setError(err?.response?.data?.message || "Failed to duplicate the estimate.");
-    } finally {
-      setDuplicating(false);
-    }
+  const handleDuplicateClick = () => setShowDuplicateConfirm(true);
+  const handleCancelDuplicate = () => setShowDuplicateConfirm(false);
+
+  // Confirming just navigates to the create form pre-loaded with this
+  // estimate's content — the actual POST only happens if/when the user
+  // clicks "Create estimate" on that page.
+  const handleConfirmDuplicate = () => {
+    setShowDuplicateConfirm(false);
+    onNavigate && onNavigate("duplicateEstimate", estimate.id);
   };
 
   // No dedicated "convert to invoice" endpoint — this is a practical
@@ -309,12 +296,20 @@ export default function EstimateDetail({ estimateId, onNavigate }) {
             Create order
           </button>
 
+          <button
+            type="button"
+            className="ed-edit-estimate-btn"
+            onClick={() => onNavigate && onNavigate("editEstimate", estimateId)}
+          >
+            Edit estimate
+          </button>
+
           <div className="ed-action-links">
             <button type="button" className="ed-action-link" onClick={handleViewAsPdf}>
               <IconPrinter /> View as PDF (Print)
             </button>
-            <button type="button" className="ed-action-link" onClick={handleDuplicate} disabled={duplicating}>
-              <IconDuplicate /> {duplicating ? "Duplicating…" : "Duplicate"}
+            <button type="button" className="ed-action-link" onClick={handleDuplicateClick}>
+              <IconDuplicate /> Duplicate
             </button>
             <button
               type="button"
@@ -352,6 +347,25 @@ export default function EstimateDetail({ estimateId, onNavigate }) {
           </div>
         </div>
       </div>
+
+      {/* Duplicate confirmation modal */}
+      {showDuplicateConfirm && (
+        <div className="ed-modal-overlay" onClick={handleCancelDuplicate}>
+          <div className="ed-modal-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="ed-modal-body">
+              Do you want to start a new estimate with the content of this as a starting point?
+            </div>
+            <div className="ed-modal-actions">
+              <button type="button" className="ed-modal-cancel" onClick={handleCancelDuplicate}>
+                Cancel
+              </button>
+              <button type="button" className="ed-modal-confirm" onClick={handleConfirmDuplicate}>
+                Yes, continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

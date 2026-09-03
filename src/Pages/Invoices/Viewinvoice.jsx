@@ -3,18 +3,30 @@ import InvoiceService from "../../services/InvoicesService";
 import "./ViewInvoice.css";
 import PaymentModal from "./PaymentModal";
 import SendInvoicePanel from "./SendInvoicePanel";
+import ConfirmDialog from "./ConfirmDialog";
+import companyLogo from "../../assets/logo192.png";
 
-/* ── Small inline icons (kept consistent with ManageInvoices icon set) ── */
+/* ── Small inline icons (kept consistent with ManageInvoices icon set) ──
+   NOTE: width/height are no longer hardcoded here — sizing is controlled
+   via CSS (.sidebar-links svg, .go-to-client svg) so it can be matched
+   to the reference design without touching these components again. */
 const IconPrint = (props) => (
-  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
     <path d="M6 9V3h12v6" strokeLinecap="round" strokeLinejoin="round" />
     <path d="M6 18H4a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2" strokeLinecap="round" strokeLinejoin="round" />
     <path d="M6 14h12v7H6z" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
+const IconDuplicate = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
+    <rect x="9" y="9" width="12" height="12" rx="1.5" />
+    <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 const IconTrash = (props) => (
-  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
     <path d="M4 7h16" strokeLinecap="round" />
     <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" strokeLinecap="round" strokeLinejoin="round" />
     <path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" strokeLinecap="round" strokeLinejoin="round" />
@@ -23,14 +35,14 @@ const IconTrash = (props) => (
 );
 
 const IconClient = (props) => (
-  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
     <circle cx="12" cy="8" r="3.2" />
     <path d="M5 20c0-3.6 3.1-6.3 7-6.3s7 2.7 7 6.3" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
 const IconHistory = (props) => (
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
     <circle cx="12" cy="12" r="8.5" />
     <path d="M12 7.5V12l3 2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
@@ -52,6 +64,25 @@ const formatHistoryTimestamp = (iso) => {
   });
 };
 
+// Maps InvoiceExtraFieldDTO.key back to the readable label shown in
+// InvoiceForm's "More options" dropdown, so ViewInvoice doesn't just
+// display the raw camelCase key.
+const EXTRA_FIELD_LABELS = {
+  extraFieldsLong: "Extra information from the customer",
+  buyerPersonalId: "Buyer personal id no.",
+  buyerVat: "Buyer's VAT number",
+  reverseCharge: "Reverse charge",
+  threePartyTrade: "Three-party trade",
+  brfOrgNo: "Housing association org. no.",
+  apartmentDesignation: "Apartment designation",
+  propertyDesignation: "Property designation",
+};
+const extraFieldLabel = (key) => EXTRA_FIELD_LABELS[key] || key;
+
+// Brand name shown in the "sent via" footer box — matches the reference
+// design's "Denna faktura skickades via Fakturan.nu." branding line.
+const BRAND_NAME = "Invoice Application";
+
 export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigate }) {
   const [invoice, setInvoice] = useState(invoiceProp || null);
   const [loading, setLoading] = useState(!invoiceProp);
@@ -59,6 +90,7 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
   const [actionError, setActionError] = useState(null);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [sendPanelOpen, setSendPanelOpen] = useState(false);
+  const [duplicateConfirmOpen, setDuplicateConfirmOpen] = useState(false);
 
   const id = invoiceProp?.id ?? invoiceId;
 
@@ -110,11 +142,14 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
     // Only DRAFT <-> SENT is a manual toggle — PAID/OVERDUE/CANCELLED
     // shouldn't be silently reverted by unchecking this box.
     if (invoice.status !== "DRAFT" && invoice.status !== "SENT") return;
-    const nextStatus = invoice.status === "SENT" ? "DRAFT" : "SENT";
+    const wasSent = invoice.status === "SENT";
     const prevStatus = invoice.status;
-    setInvoice((prev) => ({ ...prev, status: nextStatus }));
+    setInvoice((prev) => ({ ...prev, status: wasSent ? "DRAFT" : "SENT" }));
     try {
-      await InvoiceService.updateInvoice(invoice.id, { ...invoice, status: nextStatus });
+      const { data } = wasSent
+        ? await InvoiceService.markInvoiceUnsent(invoice.id)
+        : await InvoiceService.markInvoiceSent(invoice.id);
+      setInvoice(data); // server's version — includes the new history entry
     } catch (err) {
       setInvoice((prev) => ({ ...prev, status: prevStatus }));
       setActionError(err?.response?.data?.message || "Failed to update the invoice.");
@@ -149,6 +184,18 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
 
   const handleCredit = () => {
     onNavigate && onNavigate("creditInvoice", invoice.id);
+  };
+
+  const handleDuplicateClick = () => {
+    setDuplicateConfirmOpen(true);
+  };
+
+  const handleConfirmDuplicate = () => {
+    setDuplicateConfirmOpen(false);
+    // The "newInvoice" route's component is expected to accept a
+    // duplicateFromId param and pre-fill itself from that invoice —
+    // see InvoiceForm's duplicateFromId prop.
+    onNavigate && onNavigate("duplicateInvoice", invoice.id);
   };
 
   const handleGoToClient = () => {
@@ -187,6 +234,8 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
   const vatRate = items[0]?.taxPercent ?? 25;
 
   const history = invoice.history || [];
+  const extraFields = invoice.extraFields || [];
+  const taxDeductionApplied = Boolean(invoice.taxDeductionApplied);
   const isPaid = invoice.status === "PAID";
   const isSent = invoice.status !== "DRAFT" && invoice.status !== "CANCELLED";
 
@@ -314,6 +363,26 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
             </div>
           </div>
 
+          {/* ── "More options" extra fields + tax deduction ───────────
+              Previously this data was UI-only and never reached the
+              backend, so nothing rendered here even after saving. */}
+          {(extraFields.length > 0 || taxDeductionApplied) && (
+            <div className="invoice-extra-fields">
+              {extraFields.map((field, i) => (
+                <div className="extra-field-line" key={i}>
+                  <span className="extra-field-label">{extraFieldLabel(field.key)}</span>
+                  <div className="extra-field-text">{field.text}</div>
+                </div>
+              ))}
+              {taxDeductionApplied && (
+                <div className="extra-field-line">
+                  <span className="extra-field-label">Preliminary tax deduction</span>
+                  <div className="extra-field-text">{invoice.taxDeductionPercent}%</div>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="invoice-footer-boxes">
             <div className="footer-box">
               <div className="footer-col">
@@ -324,6 +393,19 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
                 <div className="footer-label">Company Email</div>
                 <div>{invoice.companyEmail}</div>
                 {invoice.approvedForFTax && <div className="footer-note">Approved for F-tax</div>}
+              </div>
+            </div>
+
+            {/* ── Branding footer — matches the reference design's
+                "Denna faktura skickades via Fakturan.nu." box. Previously
+                missing entirely from ViewInvoice. */}
+            <div className="footer-brand-box">
+              <img src={companyLogo} alt="Company logo" className="footer-brand-icon" />
+              <div className="footer-brand-text">
+                <div>
+                  This invoice was sent via <strong>{BRAND_NAME}</strong>.
+                </div>
+                <div>Simple and free invoicing directly from the web.</div>
               </div>
             </div>
           </div>
@@ -340,13 +422,18 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
             Send the invoice
           </button>
 
-          <button className="btn btn-outline" onClick={() => onNavigate && onNavigate("editInvoice", invoice.id)}>
-            Edit invoice
-          </button>
+          {!(isPaid && isSent) && (
+            <button className="btn btn-outline" onClick={() => onNavigate && onNavigate("editInvoice", invoice.id)}>
+              Edit invoice
+            </button>
+          )}
 
           <nav className="sidebar-links">
             <button type="button" onClick={handleViewPdf}>
               <IconPrint /> View as PDF (Print)
+            </button>
+            <button type="button" onClick={handleDuplicateClick}>
+              <IconDuplicate /> Duplicate
             </button>
             <button type="button" onClick={handleCredit}>
               <IconTrash /> Credit/Partial credit
@@ -399,6 +486,14 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
           invoice={invoice}
           onClose={() => setPaymentModalOpen(false)}
           onSaved={handlePaymentSaved}
+        />
+      )}
+
+      {duplicateConfirmOpen && (
+        <ConfirmDialog
+          message="Do you want to start a new invoice with the content of this as a starting point?"
+          onCancel={() => setDuplicateConfirmOpen(false)}
+          onConfirm={handleConfirmDuplicate}
         />
       )}
     </main>

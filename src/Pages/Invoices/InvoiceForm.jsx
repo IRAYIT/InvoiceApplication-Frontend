@@ -118,6 +118,12 @@ const MORE_OPTIONS = [
   },
 ];
 
+// Sub-field keys that belong to the ROT group — used to route a saved
+// extra field back to the "rotExtraFields" toggle when reloading an
+// invoice, since the group itself has no single key of its own on the
+// wire (only its three sub-fields do).
+const ROT_GROUP_FIELD_KEYS = ["brfOrgNo", "apartmentDesignation", "propertyDesignation"];
+
 /* Custom pill dropdown — replaces a native <select> (whose options
    popup can't be reliably restyled cross-browser) with a fully custom
    button + list, matching the same design language as the "More
@@ -274,16 +280,25 @@ const taxAmountOf = (row) => lineSubtotalOf(row) * (toNumber(row.taxPercent) / 1
  * InvoiceForm
  *
  * Props:
- * - invoiceId    optional — if provided, the form loads and edits that invoice
- *                (GET /api/invoices/{id}). If omitted, it creates a new one.
- * - client       { id, name } — required when creating a new invoice.
- * - currentUser  string — default value for "Our reference".
- * - onSaved      (savedInvoiceDTO) => void — called after a successful save.
- * - onNavigate   (route) => void — used for Cancel and post-save navigation.
- * - onEditClient () => void — called when the pencil icon next to Client is clicked.
+ * - invoiceId       optional — if provided, the form loads and edits that
+ *                   invoice (GET /api/invoices/{id}). Takes priority over
+ *                   duplicateFromId if both are somehow passed.
+ * - duplicateFromId optional — if provided (and invoiceId is not), the form
+ *                   pre-fills client/dates/references/items from that
+ *                   invoice, but still CREATES a new one on save (fresh
+ *                   invoice number, DRAFT status, today's invoice date).
+ *                   Used by ViewInvoice's "Duplicate" action.
+ * - client          { id, name } — required when creating a new invoice
+ *                   from scratch (ignored if invoiceId or duplicateFromId
+ *                   is set, since those load their own client).
+ * - currentUser     string — default value for "Our reference".
+ * - onSaved         (savedInvoiceDTO) => void — called after a successful save.
+ * - onNavigate      (route) => void — used for Cancel and post-save navigation.
+ * - onEditClient    () => void — called when the pencil icon next to Client is clicked.
  */
 export default function InvoiceForm({
   invoiceId,
+  duplicateFromId,
   client,
   currentUser = "",
   onSaved,
@@ -291,8 +306,9 @@ export default function InvoiceForm({
   onEditClient,
 }) {
   const isEditMode = Boolean(invoiceId);
+  const isDuplicateMode = !isEditMode && Boolean(duplicateFromId);
 
-  const [loading, setLoading] = useState(isEditMode);
+  const [loading, setLoading] = useState(isEditMode || isDuplicateMode);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
@@ -320,7 +336,6 @@ export default function InvoiceForm({
   const [showClientDetailsModal, setShowClientDetailsModal] = useState(false);
 
   // "More options (ROT/RUT etc)" — Swedish tax-deduction line options.
-  // Local-only UI state until the backend exposes a field for these.
   const [showMoreOptions, setShowMoreOptions] = useState(false);
 
   // Which of the simple text-field options are currently active.
@@ -352,6 +367,36 @@ export default function InvoiceForm({
   const [showTaxDeductionPanel, setShowTaxDeductionPanel] = useState(false);
   const [taxDeductionApplied, setTaxDeductionApplied] = useState(false);
   const [taxDeductionPercent, setTaxDeductionPercent] = useState(30);
+
+  // Reconstructs selectedOptions/optionTexts from the flat
+  // InvoiceExtraFieldDTO list the backend returns (dto.extraFields),
+  // so a reloaded/edited invoice shows the same fields that were
+  // originally selected instead of always starting blank. Uses
+  // functional updates so it's safe to call from inside a .then()
+  // without depending on state captured at render time.
+  const applyExtraFieldsFromServer = useCallback((extraFieldsList) => {
+    if (!Array.isArray(extraFieldsList) || extraFieldsList.length === 0) return;
+
+    setSelectedOptions((prev) => {
+      const next = { ...prev };
+      extraFieldsList.forEach(({ key }) => {
+        if (ROT_GROUP_FIELD_KEYS.includes(key)) {
+          next.rotExtraFields = true;
+        } else if (Object.prototype.hasOwnProperty.call(next, key)) {
+          next[key] = true;
+        }
+      });
+      return next;
+    });
+
+    setOptionTexts((prev) => {
+      const next = { ...prev };
+      extraFieldsList.forEach(({ key, text }) => {
+        if (text != null) next[key] = text;
+      });
+      return next;
+    });
+  }, []);
 
   // Recompute due date from invoice date + payment terms, unless the user
   // has manually overridden it.
@@ -402,6 +447,12 @@ export default function InvoiceForm({
               }))
             : [emptyRow()]
         );
+        // "More options" extra fields + tax deduction — previously never
+        // loaded back at all, so editing an invoice that had them always
+        // showed a blank form even though the data existed on the server.
+        applyExtraFieldsFromServer(data.extraFields);
+        setTaxDeductionApplied(Boolean(data.taxDeductionApplied));
+        setTaxDeductionPercent(data.taxDeductionPercent ?? 30);
       })
       .catch((err) => {
         if (!cancelled) setError(err?.response?.data?.message || "Failed to load invoice.");
@@ -415,6 +466,65 @@ export default function InvoiceForm({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [invoiceId, isEditMode]);
+
+  // Pre-fill from an existing invoice when duplicating — this still
+  // CREATES a new invoice on save (isEditMode stays false): fresh
+  // invoice date (today), fresh due date (recalculated from today +
+  // payment terms), no invoiceNumber, no id on any item, status left at
+  // the default DRAFT. Only client/references/currency/line items and
+  // the payment terms themselves carry over.
+  useEffect(() => {
+    if (!isDuplicateMode) return;
+    let cancelled = false;
+
+    setLoading(true);
+    setError(null);
+
+    InvoiceService.getInvoiceById(duplicateFromId)
+      .then(({ data }) => {
+        if (cancelled) return;
+        setSelectedClient({ id: data.clientId, name: data.clientName });
+        setInvoiceDate(todayIso());
+        setPaymentTerms(data.paymentTerms ?? "Net 30");
+        setDueDateTouched(false); // let the effect above recompute it from today
+        setYourReference(data.yourReference ?? "");
+        setOurReference(data.ourReference ?? currentUser);
+        setCurrency(data.currency ?? CURRENCIES[0]);
+        setItems(
+          Array.isArray(data.items) && data.items.length
+            ? data.items.map((it) => ({
+                rowKey: nextRowId(),
+                id: null, // duplicated rows are new rows, not edits of existing ones
+                rowType: it.rowType ?? "product",
+                productId: it.productId ?? null,
+                description: it.description ?? "",
+                text: it.extraInfo ?? "",
+                quantity: it.quantity ?? 1,
+                unit: it.unit ?? "",
+                unitPrice: it.unitPrice ?? 0,
+                taxPercent: it.taxPercent ?? 0,
+                discountPercent: it.discountPercent ?? 0,
+              }))
+            : [emptyRow()]
+        );
+        // Same as edit mode — carry over any "More options" fields and
+        // tax deduction from the source invoice into the duplicate.
+        applyExtraFieldsFromServer(data.extraFields);
+        setTaxDeductionApplied(Boolean(data.taxDeductionApplied));
+        setTaxDeductionPercent(data.taxDeductionPercent ?? 30);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err?.response?.data?.message || "Failed to load the invoice to duplicate.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [duplicateFromId, isDuplicateMode]);
 
   const updateRow = useCallback((rowKey, patch) => {
     setItems((prev) => prev.map((row) => (row.rowKey === rowKey ? { ...row, ...patch } : row)));
@@ -530,7 +640,8 @@ export default function InvoiceForm({
     taxAmount,
     totalAmount,
     // Free-text extra fields the user turned on via "More options" —
-    // only the ones actually selected are included.
+    // only the ones actually selected are included. Shape matches
+    // InvoiceExtraFieldDTO: { key, text }.
     extraFields: Object.entries(selectedOptions)
       .filter(([, isOn]) => isOn)
       .flatMap(([key]) => {
@@ -541,7 +652,11 @@ export default function InvoiceForm({
         }
         return [{ key, text: optionTexts[key] }];
       }),
-    taxDeduction: taxDeductionApplied ? { percent: taxDeductionPercent } : null,
+    // Flat fields matching InvoiceDTO — previously sent as a nested
+    // `taxDeduction: { percent }` object that had no matching field on
+    // the backend and was silently dropped by Jackson.
+    taxDeductionApplied,
+    taxDeductionPercent: taxDeductionApplied ? taxDeductionPercent : null,
     items: items.map((row) => ({
       id: row.id ?? undefined, // omit for new rows so the backend generates one
       rowType: row.rowType,
@@ -699,8 +814,11 @@ export default function InvoiceForm({
             </div>
           </div>
 
-          <div className="if-field">
-            <label>Payment terms</label>
+<div className="if-field">
+            <label>
+              Payment terms
+              <IconHelp className="if-label-help" />
+            </label>
             <select value={paymentTerms} onChange={(e) => setPaymentTerms(e.target.value)}>
               {PAYMENT_TERMS_OPTIONS.map((t) => (
                 <option key={t} value={t}>
@@ -709,7 +827,6 @@ export default function InvoiceForm({
               ))}
             </select>
           </div>
-
           <div className="if-field">
             <label>Due date</label>
             <div className="if-icon-input">
