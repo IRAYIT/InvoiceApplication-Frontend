@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8080/api/v1/orders";
+const API_BASE_URL = "https://invoice-app-iray.azurewebsites.net/api/v1/orders";
 
 const OrderService = {
   createOrder: (payload) => axios.post(API_BASE_URL, payload),
