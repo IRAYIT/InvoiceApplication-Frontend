@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const PRODUCTS_URL = "https://invoice-app-iray.azurewebsites.net/api/v1/products";
-const PRODUCT_GROUPS_URL = "https://invoice-app-iray.azurewebsites.net/api/v1/product-groups";
+const PRODUCTS_URL = "https://invoice-app-iray-gvctcjhfe6gzf0cc.centralindia-01.azurewebsites.net/api/v1/products";
+const PRODUCT_GROUPS_URL = "https://invoice-app-iray-gvctcjhfe6gzf0cc.centralindia-01.azurewebsites.net/api/v1/product-groups";
 
 const ProductService = {
   // Products

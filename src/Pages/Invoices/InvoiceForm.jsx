@@ -540,7 +540,7 @@ export default function InvoiceForm({
     setLoadingClients(true);
     setClientFetchError(null);
     try {
-      const res = await fetch("https://invoice-app-iray.azurewebsites.net/api/v1/clients");
+      const res = await fetch("https://invoice-app-iray-gvctcjhfe6gzf0cc.centralindia-01.azurewebsites.net/api/v1/clients");
       if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
       const data = await res.json();
       const list = Array.isArray(data) ? data : data?.content ?? [];

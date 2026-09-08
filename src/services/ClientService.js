@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "https://invoice-app-iray.azurewebsites.net/api/v1/clients";
+const API_BASE_URL = "https://invoice-app-iray-gvctcjhfe6gzf0cc.centralindia-01.azurewebsites.net/api/v1/clients";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
