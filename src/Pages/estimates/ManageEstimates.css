@@ -526,3 +526,148 @@
     min-width: 780px;
   }
 }
+/* Status dropdown */
+.es-status-badge-cell {
+  position: relative;
+}
+
+.es-status-dropdown-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.es-status-dropdown-btn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.es-status-arrow {
+  font-size: 10px;
+}
+
+.es-status-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 180px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  padding: 6px 0;
+  z-index: 1000;
+}
+
+.es-status-dropdown button {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.es-status-dropdown button:hover {
+  background: #f5f5f5;
+}
+
+.es-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.es-status-dot.status-accepted {
+  background: #35a853;
+}
+
+.es-status-dot.status-rejected {
+  background: #e85d4a;
+}
+
+.es-status-dot.status-completed {
+  background: #8a8a8a;
+}
+.es-error-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.es-error-modal {
+  position: relative;
+  width: 420px;
+  max-width: calc(100% - 40px);
+  background: #fff;
+  border-radius: 10px;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+}
+
+.es-error-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  border: none;
+  background: transparent;
+  font-size: 25px;
+  color: #777;
+  cursor: pointer;
+}
+
+.es-error-modal-icon {
+  width: 45px;
+  height: 45px;
+  margin: 0 auto 15px;
+  border-radius: 50%;
+  background: #fde8e8;
+  color: #d9534f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 25px;
+  font-weight: bold;
+}
+
+.es-error-modal h3 {
+  margin: 0 0 12px;
+  color: #24485a;
+  font-size: 20px;
+}
+
+.es-error-modal p {
+  margin: 0 0 25px;
+  color: #555;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.es-error-modal-ok {
+  min-width: 90px;
+  padding: 10px 22px;
+  border: none;
+  border-radius: 5px;
+  background: #24566b;
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.es-error-modal-ok:hover {
+  opacity: 0.9;
+}

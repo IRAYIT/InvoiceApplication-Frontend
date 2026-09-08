@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import EstimateService from "../../services/EstimateService";
 import ClientQuickEditModal from "../clients/ClientQuickEditModal";
 import "./EstimateForm.css";
+import { createPortal } from "react-dom";
+import { CURRENCIES, convertAmount, formatCurrency } from "../../constants/currency";
 
 /* Small inline icon set — no external icon package required */
 const IconCircleX = (props) => (
@@ -69,51 +71,89 @@ const IconPlus = (props) => (
    Language and Currency here are LOCAL-ONLY UI — EstimateRequestDTO
    has no fields for either, so nothing about them is sent to the API.
    Remove this note once/if the backend adds support. */
-function PillDropdown({ icon, label, value, options, onChange }) {
-  const [open, setOpen] = useState(false);
-  const wrapRef = useRef(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handleClickOutside = (e) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [open]);
-
-  return (
-    <div className="ef-pill-select-wrap" ref={wrapRef}>
-      <button type="button" className="ef-pill-select" onClick={() => setOpen((prev) => !prev)}>
-        {icon}
-        <span>{label}:</span>
-        <strong className="ef-pill-value">{value}</strong>
-        <IconChevronDown className={`ef-pill-chevron${open ? " is-open" : ""}`} />
-      </button>
-
-      {open && (
-        <div className="ef-pill-dropdown">
-          {options.map((opt) => (
-            <button
-              type="button"
-              key={opt}
-              className={`ef-pill-dropdown-item${opt === value ? " is-active" : ""}`}
-              onClick={() => {
-                onChange(opt);
-                setOpen(false);
-              }}
+   function PillDropdown({ icon, label, value, options, onChange }) {
+    const [open, setOpen] = useState(false);
+    const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
+    const triggerRef = useRef(null);
+    const dropdownRef = useRef(null);
+  
+    useEffect(() => {
+      if (!open) return;
+  
+      const updateCoords = () => {
+        if (!triggerRef.current) return;
+        const rect = triggerRef.current.getBoundingClientRect();
+        setCoords({
+          top: rect.bottom + window.scrollY + 8,
+          left: rect.left + window.scrollX,
+          width: rect.width,
+        });
+      };
+  
+      updateCoords();
+      window.addEventListener("scroll", updateCoords, true);
+      window.addEventListener("resize", updateCoords);
+  
+      const handleClickOutside = (e) => {
+        if (
+          triggerRef.current && !triggerRef.current.contains(e.target) &&
+          dropdownRef.current && !dropdownRef.current.contains(e.target)
+        ) {
+          setOpen(false);
+        }
+      };
+      document.addEventListener("mousedown", handleClickOutside);
+  
+      return () => {
+        window.removeEventListener("scroll", updateCoords, true);
+        window.removeEventListener("resize", updateCoords);
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, [open]);
+  
+    return (
+      <div className="ef-pill-select-wrap">
+        <button
+          type="button"
+          ref={triggerRef}
+          className="ef-pill-select"
+          onClick={() => setOpen((prev) => !prev)}
+        >
+          {icon}
+          <span>{label}:</span>
+          <strong className="ef-pill-value">{value}</strong>
+          <IconChevronDown className={`ef-pill-chevron${open ? " is-open" : ""}`} />
+        </button>
+  
+        {open &&
+          createPortal(
+            <div
+              ref={dropdownRef}
+              className="ef-pill-dropdown ef-pill-dropdown-portal"
+              style={{ top: coords.top, left: coords.left, minWidth: coords.width }}
             >
-              {opt}
-              {opt === value && <span className="ef-pill-dropdown-check">✓</span>}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+              {options.map((opt) => (
+                <button
+                  type="button"
+                  key={opt}
+                  className={`ef-pill-dropdown-item${opt === value ? " is-active" : ""}`}
+                  onClick={() => {
+                    onChange(opt);
+                    setOpen(false);
+                  }}
+                >
+                  {opt}
+                  {opt === value && <span className="ef-pill-dropdown-check">✓</span>}
+                </button>
+              ))}
+            </div>,
+            document.body
+          )}
+      </div>
+    );
+  }
 
-const CURRENCIES = ["SEK", "INR"]; // local-only, see PillDropdown note above
+// const CURRENCIES = ["SEK", "INR"]; // local-only, see PillDropdown note above
 const LANGUAGES = ["Swedish", "English", "Norwegian", "Danish", "Finnish"]; // local-only
 const PAYMENT_TERMS_OPTIONS = ["Due on receipt", "Net 15", "Net 30", "Net 45", "Net 60"]; // local-only, used only to compute validUntil
 
@@ -219,7 +259,8 @@ export default function EstimateForm({
   const [yourReference, setYourReference] = useState("");
   const [ourReference, setOurReference] = useState(currentUser);
 
-  const [currency, setCurrency] = useState(CURRENCIES[0]); // local-only
+  const [currency, setCurrency] = useState(CURRENCIES[0]);
+  const [currencyChanging, setCurrencyChanging] = useState(false);
   const [language, setLanguage] = useState(LANGUAGES[0]); // local-only
   const [items, setItems] = useState([emptyRow()]);
 
@@ -253,6 +294,7 @@ export default function EstimateForm({
         setValidUntilTouched(true); // trust the loaded date, don't auto-recompute it
         setYourReference(""); // notes isn't split back into these two on load
         setOurReference(currentUser);
+        setCurrency(data.currency || "SEK");
         setItems(
           Array.isArray(data.items) && data.items.length
             ? data.items.map((it) => ({
@@ -302,6 +344,7 @@ export default function EstimateForm({
         setValidUntilTouched(false); // let the effect above recompute it from today
         setYourReference("");
         setOurReference(currentUser);
+        setCurrency(data.currency || "SEK");
         setItems(
           Array.isArray(data.items) && data.items.length
             ? data.items.map((it) => ({
@@ -343,7 +386,7 @@ export default function EstimateForm({
     setLoadingClients(true);
     setClientFetchError(null);
     try {
-      const res = await fetch("https://invoice-app-iray.azurewebsites.net/api/v1/clients");
+      const res = await fetch("https://invoice-app-iray-gvctcjhfe6gzf0cc.centralindia-01.azurewebsites.net/api/v1/clients");
       if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
       const data = await res.json();
       const list = Array.isArray(data) ? data : data?.content ?? [];
@@ -383,6 +426,48 @@ export default function EstimateForm({
     }));
   };
 
+    // Editing an existing, already-saved estimate → authoritative backend
+  // conversion via EstimateService.updateCurrency. New / duplicate-in-
+  // progress estimates have no id yet, so those get a local preview
+  // conversion instead — the real numbers are whatever gets sent on Create.
+  const handleCurrencyChange = async (newCurrency) => {
+    if (newCurrency === currency) return;
+
+    if (isEditMode && estimateId) {
+      setCurrencyChanging(true);
+      setError(null);
+      try {
+        const { data } = await EstimateService.updateCurrency(estimateId, newCurrency);
+        setCurrency(data.currency);
+        setItems(
+          data.items.map((it) => ({
+            rowKey: nextRowId(),
+            id: it.id ?? null,
+            productId: it.productId ?? null,
+            description: it.description ?? "",
+            quantity: it.quantity ?? 1,
+            unit: it.unit ?? "",
+            unitPrice: it.unitPrice ?? 0,
+            taxPercent: it.taxPercent ?? 0,
+          }))
+        );
+      } catch (err) {
+        setError(err?.response?.data?.message || "Failed to update currency.");
+      } finally {
+        setCurrencyChanging(false);
+      }
+      return;
+    }
+
+    setItems((prev) =>
+      prev.map((row) => ({
+        ...row,
+        unitPrice: Number(convertAmount(toNumber(row.unitPrice), currency, newCurrency).toFixed(2)),
+      }))
+    );
+    setCurrency(newCurrency);
+  };
+
   const addProductRow = () => setItems((prev) => [...prev, emptyRow()]);
 
   const { subtotal, taxAmount, totalAmount } = useMemo(() => {
@@ -409,6 +494,7 @@ export default function EstimateForm({
       issueDate,
       validUntil,
       notes: referenceLines.join("\n"),
+      currency,
       items: items.map((row) => ({
         productId: row.productId ?? null,
         description: row.description,
@@ -594,7 +680,7 @@ export default function EstimateForm({
             label="Currency"
             value={currency}
             options={CURRENCIES}
-            onChange={setCurrency}
+            onChange={handleCurrencyChange}
           />
         </div>
       </div>
@@ -603,7 +689,14 @@ export default function EstimateForm({
           description, quantity, unit, unitPrice, taxPercent, +computed
           line total. No text/discount columns — the backend item schema
           doesn't support them. */}
-      <div className="ef-table-card">
+      <div
+        className="ef-table-card"
+        style={{
+          opacity: currencyChanging ? 0.6 : 1,
+          pointerEvents: currencyChanging ? "none" : "auto",
+        }}
+      >
+        {currencyChanging && <div className="ef-loading-state">Updating currency…</div>}
         <div className="ef-table-header">
           <div className="ef-col-drag" />
           <div>PRODUCT / SERVICE</div>
@@ -649,7 +742,7 @@ export default function EstimateForm({
               value={row.taxPercent}
               onChange={(e) => updateRow(row.rowKey, { taxPercent: e.target.value })}
             />
-            <div className="ef-total-value">{lineTotalOf(row).toFixed(2)}</div>
+            <div className="ef-total-value">{formatCurrency(lineTotalOf(row), currency)}</div>
             <button
               type="button"
               className="ef-row-delete"
@@ -671,15 +764,15 @@ export default function EstimateForm({
           <div className="ef-summary">
             <div>
               <span>Net</span>
-              <strong>{subtotal.toFixed(2)}</strong>
+              <strong>{formatCurrency(subtotal, currency)}</strong>
             </div>
             <div>
               <span>VAT</span>
-              <strong>{taxAmount.toFixed(2)}</strong>
+              <strong>{formatCurrency(taxAmount, currency)}</strong>
             </div>
             <div>
               <span>Total</span>
-              <strong>{totalAmount.toFixed(2)}</strong>
+              <strong>{formatCurrency(totalAmount, currency)}</strong>
             </div>
           </div>
         </div>

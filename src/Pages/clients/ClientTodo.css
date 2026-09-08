@@ -1,0 +1,58 @@
+.cd-todo-form-panel {
+    background: #fffdf5;
+    border: 1px solid #faeccb;
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+  
+  .cd-form-row {
+    margin-bottom: 12px;
+  }
+  
+  .cd-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  
+  .cd-mt-sm {
+    margin-top: 12px;
+  }
+  
+  .cd-input,
+  .cd-select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #dcdfe6;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+  
+  .cd-form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  
+  .cd-circle-delete-btn {
+    background: none;
+    border: none;
+    color: #a0a6b1;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .cd-circle-delete-btn:hover {
+    color: #e53e3e;
+  }
+  
+  .cd-todo-desc-cell {
+    color: #2e7d32;
+    font-weight: 500;
+  }

@@ -33,8 +33,11 @@ const IconClock = (props) => (
   </svg>
 );
 
-const formatKr = (n) =>
-  `${Number(n || 0).toLocaleString("sv-SE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kr`;
+const formatCurrency = (n, currency) =>
+  `${Number(n || 0).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })} ${currency || ""}`;
 
 const formatHistoryDate = (iso) => {
   if (!iso) return "";
@@ -259,8 +262,10 @@ export default function EstimateDetail({ estimateId, onNavigate }) {
                     {item.quantity}
                     {item.unit ? ` ${item.unit}` : ""}
                   </td>
-                  <td>{formatKr(item.unitPrice)}</td>
-                  <td className="ed-col-right">{formatKr(item.lineTotal)}</td>
+                  <td>{formatCurrency(item.unitPrice, estimate.currency)}</td>
+                  <td className="ed-col-right">
+                    {formatCurrency(item.lineTotal, estimate.currency)}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -269,15 +274,15 @@ export default function EstimateDetail({ estimateId, onNavigate }) {
           <div className="ed-totals">
             <div>
               <span>Net</span>
-              <strong>{formatKr(estimate.subtotal)}</strong>
+              <strong>{formatCurrency(estimate.subtotal, estimate.currency)}</strong>
             </div>
             <div>
               <span>VAT</span>
-              <strong>{formatKr(estimate.vatAmount)}</strong>
+              <strong>{formatCurrency(estimate.vatAmount, estimate.currency)}</strong>
             </div>
             <div className="ed-total-final">
               <span>Total to pay</span>
-              <strong>{formatKr(estimate.total)}</strong>
+              <strong>{formatCurrency(estimate.total, estimate.currency)}</strong>
             </div>
           </div>
         </div>

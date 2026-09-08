@@ -281,7 +281,12 @@
   box-shadow: 0 12px 28px -8px rgba(20, 40, 60, 0.25);
   padding: 6px;
   min-width: 160px;
-  z-index: 30;
+  z-index: 9999; /* was 30 — needs to clear the app's tab/nav bar */
+}
+
+.ef-pill-dropdown-portal {
+  position: absolute; /* now relative to document.body, using top/left set inline via JS */
+  z-index: 9999;
 }
 
 .ef-pill-dropdown-item {
@@ -335,7 +340,7 @@
   box-shadow: 0 12px 28px -8px rgba(20, 40, 60, 0.25);
   max-height: 280px;
   overflow-y: auto;
-  z-index: 30;
+  z-index: 9999;
 }
 
 .ef-client-dropdown-msg {

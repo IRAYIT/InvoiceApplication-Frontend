@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import OrderService from "../../services/OrderService";
 import ClientQuickEditModal from "../clients/ClientQuickEditModal";
+import { createPortal } from "react-dom";
 import "./OrderForm.css";
 
 /* Small inline icon set — same set used on EstimateForm, no external
@@ -69,49 +70,87 @@ const IconPlus = (props) => (
 
 /* Custom pill dropdown — same pattern used on EstimateForm/InvoiceForm,
    avoids the unreliable native <select> options popup styling. */
-function PillDropdown({ icon, label, value, options, onChange }) {
-  const [open, setOpen] = useState(false);
-  const wrapRef = useRef(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handleClickOutside = (e) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [open]);
-
-  return (
-    <div className="of-pill-select-wrap" ref={wrapRef}>
-      <button type="button" className="of-pill-select" onClick={() => setOpen((prev) => !prev)}>
-        {icon}
-        <span>{label}:</span>
-        <strong className="of-pill-value">{value}</strong>
-        <IconChevronDown className={`of-pill-chevron${open ? " is-open" : ""}`} />
-      </button>
-
-      {open && (
-        <div className="of-pill-dropdown">
-          {options.map((opt) => (
-            <button
-              type="button"
-              key={opt}
-              className={`of-pill-dropdown-item${opt === value ? " is-active" : ""}`}
-              onClick={() => {
-                onChange(opt);
-                setOpen(false);
-              }}
+   function PillDropdown({ icon, label, value, options, onChange }) {
+    const [open, setOpen] = useState(false);
+    const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
+    const triggerRef = useRef(null);
+    const dropdownRef = useRef(null);
+  
+    useEffect(() => {
+      if (!open) return;
+  
+      const updateCoords = () => {
+        if (!triggerRef.current) return;
+        const rect = triggerRef.current.getBoundingClientRect();
+        setCoords({
+          top: rect.bottom + window.scrollY + 8,
+          left: rect.left + window.scrollX,
+          width: rect.width,
+        });
+      };
+  
+      updateCoords();
+      window.addEventListener("scroll", updateCoords, true);
+      window.addEventListener("resize", updateCoords);
+  
+      const handleClickOutside = (e) => {
+        if (
+          triggerRef.current && !triggerRef.current.contains(e.target) &&
+          dropdownRef.current && !dropdownRef.current.contains(e.target)
+        ) {
+          setOpen(false);
+        }
+      };
+      document.addEventListener("mousedown", handleClickOutside);
+  
+      return () => {
+        window.removeEventListener("scroll", updateCoords, true);
+        window.removeEventListener("resize", updateCoords);
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, [open]);
+  
+    return (
+      <div className="of-pill-select-wrap">
+        <button
+          type="button"
+          ref={triggerRef}
+          className="of-pill-select"
+          onClick={() => setOpen((prev) => !prev)}
+        >
+          {icon}
+          <span>{label}:</span>
+          <strong className="of-pill-value">{value}</strong>
+          <IconChevronDown className={`of-pill-chevron${open ? " is-open" : ""}`} />
+        </button>
+  
+        {open &&
+          createPortal(
+            <div
+              ref={dropdownRef}
+              className="of-pill-dropdown of-pill-dropdown-portal"
+              style={{ top: coords.top, left: coords.left, minWidth: coords.width }}
             >
-              {opt}
-              {opt === value && <span className="of-pill-dropdown-check">✓</span>}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+              {options.map((opt) => (
+                <button
+                  type="button"
+                  key={opt}
+                  className={`of-pill-dropdown-item${opt === value ? " is-active" : ""}`}
+                  onClick={() => {
+                    onChange(opt);
+                    setOpen(false);
+                  }}
+                >
+                  {opt}
+                  {opt === value && <span className="of-pill-dropdown-check">✓</span>}
+                </button>
+              ))}
+            </div>,
+            document.body
+          )}
+      </div>
+    );
+  }
 
 /* Order status — matches the four statuses fakturan.nu's Order module
    documents: Not started / Started / Completed / Cancelled.
@@ -328,7 +367,7 @@ export default function OrderForm({
     setLoadingClients(true);
     setClientFetchError(null);
     try {
-      const res = await fetch("https://invoice-app-iray.azurewebsites.net/api/v1/clients");
+      const res = await fetch("https://invoice-app-iray-gvctcjhfe6gzf0cc.centralindia-01.azurewebsites.net/api/v1/clients");
       if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
       const data = await res.json();
       const list = Array.isArray(data) ? data : data?.content ?? [];

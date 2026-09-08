@@ -59,25 +59,94 @@ const IconTrash = (props) => (
    Matches EstimateResponseDTO.status: "DRAFT / SENT / APPROVED /
    REJECTED / CONVERTED". SENT is shown as "Unanswered" (group) /
    "Waiting answer" (row), matching the reference. ──────────────────── */
-const STATUS_META = {
-  SENT: { groupLabel: "Unanswered", rowLabel: "Waiting answer", className: "status-unanswered" },
-  APPROVED: { groupLabel: "Approved", rowLabel: "Approved", className: "status-approved" },
-  REJECTED: { groupLabel: "Rejected", rowLabel: "Rejected", className: "status-rejected" },
-  CONVERTED: { groupLabel: "Converted", rowLabel: "Converted to invoice", className: "status-converted" },
-  DRAFT: { groupLabel: "Draft", rowLabel: "Draft", className: "status-draft" },
-};
-const STATUS_ORDER = ["SENT", "APPROVED", "REJECTED", "CONVERTED", "DRAFT"];
+   const STATUS_META = {
+    SENT: {
+      groupLabel: "Unanswered",
+      rowLabel: "Waiting answer",
+      className: "status-unanswered",
+    },
+  
+    APPROVED: {
+      groupLabel: "Approved",
+      rowLabel: "Accepted",
+      className: "status-approved",
+    },
+  
+    REJECTED: {
+      groupLabel: "Rejected",
+      rowLabel: "Rejected",
+      className: "status-rejected",
+    },
+  
+    COMPLETED: {
+      groupLabel: "Completed",
+      rowLabel: "Completed",
+      className: "status-completed",
+    },
+  
+    DRAFT: {
+      groupLabel: "Draft",
+      rowLabel: "Draft",
+      className: "status-draft",
+    },
+  };
+  const STATUS_ORDER = [
+    "SENT",
+    "APPROVED",
+    "REJECTED",
+    "COMPLETED",
+    "DRAFT",
+  ];
 
-const formatKr = (n) =>
-  `${Number(n || 0).toLocaleString("sv-SE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kr`;
+const STATUS_OPTIONS = [
+  {
+    value: "APPROVED",
+    label: "Accepted",
+    className: "status-accepted",
+  },
+  {
+    value: "REJECTED",
+    label: "Rejected",
+    className: "status-rejected",
+  },
+  {
+    value: "COMPLETED",
+    label: "Completed",
+    className: "status-completed",
+  },
+];
+
+const formatCurrency = (n, currency) => {
+  const symbols = {
+    INR: "₹",
+    SEK: "kr",
+    USD: "$",
+    EUR: "€",
+    GBP: "£",
+  };
+
+  const amount = Number(n || 0).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  if (currency === "SEK") {
+    return `${amount} kr`;
+  }
+
+  return `${symbols[currency] || currency || ""}${amount}`;
+};
 
 export default function ManageEstimates({ onNavigate }) {
   const [estimates, setEstimates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [deleteError, setDeleteError] = useState(null);
   const [year, setYear] = useState(new Date().getFullYear());
   const [search, setSearch] = useState("");
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [openStatusId, setOpenStatusId] = useState(null);
+  
 
   useEffect(() => {
     fetchEstimates();
@@ -117,26 +186,99 @@ export default function ManageEstimates({ onNavigate }) {
 
   const groups = useMemo(() => {
     const byStatus = {};
+  
     filteredEstimates.forEach((est) => {
       const key = est.status || "DRAFT";
-      if (!byStatus[key]) byStatus[key] = [];
+  
+      if (!byStatus[key]) {
+        byStatus[key] = [];
+      }
+  
       byStatus[key].push(est);
     });
-    return STATUS_ORDER.filter((key) => byStatus[key]?.length).map((key) => {
-      const list = byStatus[key];
-      const total = list.reduce((sum, est) => sum + Number(est.total || 0), 0);
-      const vat = list.reduce((sum, est) => sum + Number(est.vatAmount || 0), 0);
-      return { key, meta: STATUS_META[key] || STATUS_META.DRAFT, list, total, vat };
-    });
+  
+    return STATUS_ORDER
+      .filter((key) => byStatus[key]?.length)
+      .map((key) => {
+        const list = byStatus[key];
+  
+        // Separate totals by currency
+        const currencyTotals = {};
+  
+        list.forEach((est) => {
+          const currency = est.currency || "SEK";
+  
+          if (!currencyTotals[currency]) {
+            currencyTotals[currency] = {
+              total: 0,
+              vat: 0,
+            };
+          }
+  
+          currencyTotals[currency].total += Number(est.total || 0);
+          currencyTotals[currency].vat += Number(est.vatAmount || 0);
+        });
+  
+        return {
+          key,
+          meta: STATUS_META[key] || STATUS_META.DRAFT,
+          list,
+          currencyTotals,
+        };
+      });
   }, [filteredEstimates]);
+
+  const handleStatusChange = async (estimate, newStatus) => {
+    setOpenStatusId(null);
+  
+    try {
+      let response;
+  
+      if (newStatus === "APPROVED") {
+        response = await EstimateService.approveEstimate(estimate.id);
+      } else if (newStatus === "REJECTED") {
+        response = await EstimateService.rejectEstimate(estimate.id);
+      } else if (newStatus === "COMPLETED") {
+        response = await EstimateService.convertToInvoice(estimate.id);
+      }
+  
+      setEstimates((prev) =>
+        prev.map((est) =>
+          est.id === estimate.id
+            ? {
+                ...est,
+                status: response?.data?.status || newStatus,
+              }
+            : est
+        )
+      );
+    } catch (err) {
+      setError(
+        err?.response?.data?.message ||
+          "Failed to update estimate status."
+      );
+    }
+  };
 
   const handleDeleteEstimate = async (id) => {
     setOpenMenuId(null);
+    setDeleteError(null);
+  
     try {
       await EstimateService.deleteEstimate(id);
-      setEstimates((prev) => prev.filter((est) => est.id !== id));
+  
+      setEstimates((prev) =>
+        prev.filter((est) => est.id !== id)
+      );
     } catch (err) {
-      setError(err?.response?.data?.message || "Failed to delete the estimate.");
+      console.error("Error deleting estimate:", err);
+  
+      const message =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        "This estimate cannot be deleted.";
+  
+      setDeleteError(message);
     }
   };
 
@@ -230,9 +372,21 @@ export default function ManageEstimates({ onNavigate }) {
           groups.map((group) => (
             <section className={`es-status-group ${group.meta.className}`} key={group.key}>
               <div className="es-status-summary">
-                <div className="es-status-label">{group.meta.groupLabel}</div>
-                <div className="es-status-amount">{formatKr(group.total)}</div>
-                <div className="es-status-vat">of which VAT {formatKr(group.vat)}</div>
+                <div className="es-status-label">
+                  {group.meta.groupLabel}
+                </div>
+
+                {Object.entries(group.currencyTotals).map(([currency, values]) => (
+                  <div key={currency}>
+                    <div className="es-status-amount">
+                      {formatCurrency(values.total, currency)}
+                    </div>
+
+                    <div className="es-status-vat">
+                      of which VAT {formatCurrency(values.vat, currency)}
+                    </div>
+                  </div>
+                ))}
               </div>
 
               <div className="es-status-table">
@@ -275,15 +429,48 @@ export default function ManageEstimates({ onNavigate }) {
                         {est.clientName}
                       </a>
                     </div>
-                    <div>{formatKr(est.total)}</div>
+                    <div>{formatCurrency(est.total, est.currency)}</div>
                     <div>{est.validUntil}</div>
                     <div>
                       <input type="checkbox" checked={!!est.sentAt} readOnly />
                     </div>
                     <div className="es-status-badge-cell">
-                      <span className={`es-status-badge ${group.meta.className}`}>
-                        {group.meta.rowLabel}
-                      </span>
+                      <div className="es-status-dropdown-wrapper">
+                        <button
+                          type="button"
+                          className={`es-status-dropdown-btn ${group.meta.className}`}
+                          onClick={() =>
+                            setOpenStatusId((prev) =>
+                              prev === est.id ? null : est.id
+                            )
+                          }
+                        >
+                          <span>{group.meta.rowLabel}</span>
+
+                          <span className="es-status-arrow">
+                            {openStatusId === est.id ? "▲" : "▼"}
+                          </span>
+                        </button>
+
+                        {openStatusId === est.id && (
+                          <div className="es-status-dropdown">
+                            {STATUS_OPTIONS.map((option) => (
+                              <button
+                                key={option.value}
+                                type="button"
+                                onClick={() =>
+                                  handleStatusChange(est, option.value)
+                                }
+                              >
+                                <span
+                                  className={`es-status-dot ${option.className}`}
+                                />
+                                <span>{option.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="es-row-menu">
                       <button
@@ -340,6 +527,39 @@ export default function ManageEstimates({ onNavigate }) {
       </footer>
 
       <button className="es-help-btn">❓ Help</button>
+
+      {/* Delete error popup */}
+      {deleteError && (
+        <div className="es-error-modal-overlay">
+          <div className="es-error-modal">
+
+            <button
+              type="button"
+              className="es-error-modal-close"
+              onClick={() => setDeleteError(null)}
+            >
+              ×
+            </button>
+
+            <div className="es-error-modal-icon">
+              !
+            </div>
+
+            <h3>Unable to delete estimate</h3>
+
+            <p>{deleteError}</p>
+
+            <button
+              type="button"
+              className="es-error-modal-ok"
+              onClick={() => setDeleteError(null)}
+            >
+              OK
+            </button>
+
+          </div>
+        </div>
+      )}
     </main>
   );
 }

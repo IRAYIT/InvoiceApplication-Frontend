@@ -537,24 +537,44 @@ export default function InvoiceForm({
   // Fetches the full client list so the person can see client details and
   // pick a different one directly from the invoice form.
   const fetchClients = useCallback(async () => {
-    setLoadingClients(true);
-    setClientFetchError(null);
-    try {
-      const res = await fetch("https://invoice-app-iray.azurewebsites.net/api/v1/clients");
-      if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
-      const data = await res.json();
-      const list = Array.isArray(data) ? data : data?.content ?? [];
-      if (list.length) {
-        // eslint-disable-next-line no-console
-        console.log("Client API sample record (check field names):", list[0]);
-      }
-      setClientList(list);
-    } catch (err) {
-      setClientFetchError(err?.message || "Failed to load clients.");
-    } finally {
-      setLoadingClients(false);
+  setLoadingClients(true);
+  setClientFetchError(null);
+
+  try {
+    const res = await fetch("https://invoice-app-iray-gvctcjhfe6gzf0cc.centralindia-01.azurewebsites.net/api/v1/clients");
+
+    if (!res.ok) {
+      throw new Error(`Request failed with status ${res.status}`);
     }
-  }, []);
+
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : data?.content ?? [];
+
+    if (list.length) {
+      // eslint-disable-next-line no-console
+      console.log("Client API sample record (check field names):", list[0]);
+    }
+
+    setClientList(list);
+
+    if (client?.id) {
+      const matchedClient = list.find(
+        (c) => Number(c.id) === Number(client.id)
+      );
+
+      if (matchedClient) {
+        setSelectedClient({
+          id: matchedClient.id,
+          name: getClientDisplayName(matchedClient),
+        });
+      }
+    }
+  } catch (err) {
+    setClientFetchError(err?.message || "Failed to load clients.");
+  } finally {
+    setLoadingClients(false);
+  }
+}, []);
 
   const handleClientFieldClick = () => {
     setShowClientDropdown((prev) => !prev);

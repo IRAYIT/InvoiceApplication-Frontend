@@ -310,6 +310,11 @@
   transition: background 0.15s ease, color 0.15s ease;
 }
 
+.of-pill-dropdown-portal {
+  position: absolute; /* now relative to document.body, positioned via inline top/left from JS */
+  z-index: 9999;
+}
+
 .of-pill-dropdown-item:hover {
   background: #eef4fd;
   color: var(--brand-blue-deep);

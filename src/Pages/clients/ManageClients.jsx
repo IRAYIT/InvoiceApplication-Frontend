@@ -73,6 +73,10 @@ function ManageClients({ onNavigate }) {
   const [showNewClientForm, setShowNewClientForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [showPrintPanel, setShowPrintPanel] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [deleteClientId, setDeleteClientId] = useState(null);
+  const [deleteClientName, setDeleteClientName] = useState("");
+  const [deleteClientLoading, setDeleteClientLoading] = useState(false);
 
   const [printFields, setPrintFields] = useState({
     number: true,
@@ -478,6 +482,64 @@ if (!printWindow) {
       })
     : clients;
 
+    const handleRowClick = (clientId) => {
+      onNavigate && onNavigate("clientDetail", clientId);
+    };
+    
+    const handleMenuClick = (e, clientId) => {
+      e.stopPropagation();
+      setOpenMenuId((prev) => (prev === clientId ? null : clientId));
+    };
+    
+    const handleNewInvoice = (e, clientId) => {
+      e.stopPropagation();
+      setOpenMenuId(null);
+    
+      onNavigate && onNavigate("newInvoice", clientId);
+    };
+    
+    const handleNewEstimate = (e, clientId) => {
+      e.stopPropagation();
+      setOpenMenuId(null);
+    
+      onNavigate && onNavigate("newEstimate", clientId);
+    };
+    
+    const handleDeleteClient = (e, clientId) => {
+      e.stopPropagation();
+      setOpenMenuId(null);
+    
+      const client = clients.find((item) => item.id === clientId);
+    
+      setDeleteClientId(clientId);
+      setDeleteClientName(client ? getClientDisplayName(client) : "");
+    };
+    
+    const handleConfirmDeleteClient = async () => {
+      if (!deleteClientId) return;
+    
+      try {
+        setDeleteClientLoading(true);
+    
+        await ClientService.deleteClient(deleteClientId);
+    
+        setDeleteClientId(null);
+        setDeleteClientName("");
+    
+        await fetchClients();
+      } catch (err) {
+        console.error("Error deleting client:", err);
+        alert("Failed to delete client.");
+      } finally {
+        setDeleteClientLoading(false);
+      }
+    };
+    
+    const handleCancelDeleteClient = () => {
+      setDeleteClientId(null);
+      setDeleteClientName("");
+    };
+
   return (
     <div className="clients-page">
       <h1 className="page-title">Clients</h1>
@@ -790,7 +852,11 @@ if (!printWindow) {
                 </tr>
               ) : (
                 filteredClients.map((client) => (
-                  <tr key={client.id}>
+                  <tr
+                    key={client.id}
+                    className="client-row"
+                    onClick={() => handleRowClick(client.id)}
+                  >
                     <td>{client.id}</td>
                     <td>
                       <a
@@ -829,10 +895,29 @@ if (!printWindow) {
                       ) : null}
                     </td>
                     <td className="row-actions">
-                      <button className="row-menu-btn">
+                      <button
+                        className="row-menu-btn"
+                        onClick={(e) => handleMenuClick(e, client.id)}
+                      >
                         <IconGear />
                         <IconChevronDown />
                       </button>
+
+                      {openMenuId === client.id && (
+                        <div className="client-row-menu">
+                          <button onClick={(e) => handleNewInvoice(e, client.id)}>
+                            New invoice
+                          </button>
+
+                          <button onClick={(e) => handleNewEstimate(e, client.id)}>
+                            New estimate
+                          </button>
+
+                          <button onClick={(e) => handleDeleteClient(e, client.id)}>
+                            Delete
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -849,6 +934,62 @@ if (!printWindow) {
           <span><IconClock /> Mon - Thu 09:00 - 12:00</span>
         </div>
       </div>
+
+      {/* Delete Client Confirmation Popup */}
+      {deleteClientId && (
+        <div className="client-delete-modal-overlay">
+          <div className="client-delete-modal">
+
+            <button
+              type="button"
+              className="client-delete-modal-close"
+              onClick={handleCancelDeleteClient}
+              disabled={deleteClientLoading}
+            >
+              ×
+            </button>
+
+            <div className="client-delete-modal-icon">
+              !
+            </div>
+
+            <h3>Delete client</h3>
+
+            <p>
+              Are you sure you want to delete{" "}
+              <strong>{deleteClientName}</strong>?
+            </p>
+
+            <p className="client-delete-modal-warning">
+              This action cannot be undone.
+            </p>
+
+            <div className="client-delete-modal-actions">
+
+              <button
+                type="button"
+                className="client-delete-cancel"
+                onClick={handleCancelDeleteClient}
+                disabled={deleteClientLoading}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="client-delete-confirm"
+                onClick={handleConfirmDeleteClient}
+                disabled={deleteClientLoading}
+              >
+                {deleteClientLoading ? "Deleting..." : "Delete"}
+              </button>
+
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
