@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import InvoiceService from "../../services/InvoicesService";
-import "./SendInvoicePanel.css";
+import "./Sendinvoicepanel.css";
 
 const IconAt = (props) => (
   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>

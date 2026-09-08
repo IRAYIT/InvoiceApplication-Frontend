@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import InvoiceService from "../../services/InvoicesService";
-import "./ViewInvoice.css";
+import "./Viewinvoice.css";
 import PaymentModal from "./PaymentModal";
-import SendInvoicePanel from "./SendInvoicePanel";
-import ConfirmDialog from "./ConfirmDialog";
+import SendInvoicePanel from "./Sendinvoicepanel";
+import ConfirmDialog from "./Confirmdialog";
 import companyLogo from "../../assets/logo192.png";
 
 /* ── Small inline icons (kept consistent with ManageInvoices icon set) ──

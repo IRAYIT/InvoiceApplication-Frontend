@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import InvoiceService from "../../services/InvoicesService";
 import "./ManageInvoices.css";
 import PaymentModal from "./PaymentModal";
-import SendInvoicePanel from "./SendInvoicePanel";
-import ConfirmDialog from "./ConfirmDialog";
+import SendInvoicePanel from "./Sendinvoicepanel";  
+import ConfirmDialog from "./Confirmdialog"; 
 
 /* ── Small inline icons (no external icon package required) ─────────── */
 const IconGear = (props) => (

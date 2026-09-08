@@ -1,5 +1,5 @@
 import React from "react";
-import "./ConfirmDialog.css";
+import "./Confirmdialog.css";   
 
 export default function ConfirmDialog({
   message,
