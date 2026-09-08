@@ -9,17 +9,17 @@ import EditClientForm from "./Pages/clients/EditClientForm";
 import ManageInvoices from "./Pages/Invoices/ManageInvoices";
 import InvoiceForm from "./Pages/Invoices/InvoiceForm";
 import EditInvoice from "./Pages/Invoices/EditInvoice";
-import ViewInvoice from "./Pages/Invoices/ViewInvoice";
+import ViewInvoice from "./Pages/Invoices/Viewinvoice";
 
 import EstimateForm from "./Pages/estimates/EstimateForm";
 import ManageEstimates from "./Pages/estimates/ManageEstimates";
 import EstimateDetail from "./Pages/estimates/EstimateDetail";
 
 import ManageOrders from "./Pages/orders/ManageOrders";
-import OrderForm from "./Pages/orders/OrderForm";
+import OrderForm from "./Pages/orders/Orderform";
 
-import ManageProducts from "./Pages/products/ManageProducts";
-import ProductDetail from "./Pages/products/Productdetail";
+import ManageProducts from "./Pages/Products/ManageProducts";
+import ProductDetail from "./Pages/Products/Productdetail";
 import "./App.css";
 
 function getInitialRouteFromUrl() {
