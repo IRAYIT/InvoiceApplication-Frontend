@@ -19,6 +19,8 @@ function ClientTodos({ clientId }) {
   const [todoLoading, setTodoLoading] = useState(false);
   const [todoError, setTodoError] = useState(null);
   const [todoForm, setTodoForm] = useState(initialTodoFormState);
+  const [editingTodoId, setEditingTodoId] = useState(null);
+  const [editForm, setEditForm] = useState(initialTodoFormState);
 
   useEffect(() => {
     if (clientId) {
@@ -49,6 +51,56 @@ function ClientTodos({ clientId }) {
       setProducts([]);
     }
   };
+
+const handleEditInputChange = (e) => {
+  const { name, value } = e.target;
+  setEditForm((prev) => ({ ...prev, [name]: value }));
+};
+
+const handleStartEdit = (todo) => {
+  setEditingTodoId(todo.id);
+  setEditForm({
+    description: todo.description || "",
+    assignedTo: todo.assignedTo || "Everybody",
+    priority: todo.priority || "Low",
+    productService: todo.productService || "",
+    deadline: todo.deadline || "",
+    hours: todo.hours ?? 0.0,
+    unbilled: todo.unbilled ?? 0.0,
+    done: !!todo.done,
+  });
+};
+
+const handleCancelEdit = () => {
+  setEditingTodoId(null);
+  setEditForm(initialTodoFormState);
+};
+
+const handleSaveEdit = async (todoId) => {
+  if (!editForm.description.trim()) {
+    alert("Description is required.");
+    return;
+  }
+
+  try {
+    setTodoLoading(true);
+    const response = await TodoService.updateTodo(todoId, {
+      ...editForm,
+      hours: Number(editForm.hours) || 0.0,
+      unbilled: Number(editForm.unbilled) || 0.0,
+    });
+
+    setTodos((prev) =>
+      prev.map((t) => (t.id === todoId ? response.data : t))
+    );
+    setEditingTodoId(null);
+  } catch (err) {
+    console.error("Error updating todo:", err);
+    alert(err?.response?.data?.message || "Failed to update todo.");
+  } finally {
+    setTodoLoading(false);
+  }
+};
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -254,29 +306,134 @@ function ClientTodos({ clientId }) {
           <tbody>
             {filteredTodos.length > 0 ? (
               filteredTodos.map((todo) => (
-                <tr key={todo.id}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={!!todo.done}
-                      onChange={() => handleToggleDone(todo)}
-                    />
-                  </td>
-                  <td className="cd-todo-desc-cell">{todo.description}</td>
-                  <td className="cd-muted-text">{todo.assignedTo || "Everybody"}</td>
-                  <td>{(Number(todo.hours) || 0).toFixed(1)} h</td>
-                  <td>{(Number(todo.unbilled) || 0).toFixed(1)} h</td>
-                  <td>
-                    <button
-                      type="button"
-                      className="cd-circle-delete-btn"
-                      title="Delete todo"
-                      onClick={() => handleDelete(todo.id)}
-                    >
-                      ⊖
-                    </button>
-                  </td>
-                </tr>
+                <React.Fragment key={todo.id}>
+                  {editingTodoId === todo.id ? (
+                    <tr className="cd-todo-edit-row">
+                      <td colSpan="6">
+                        <div className="cd-todo-edit-panel">
+                          <div className="cd-form-row">
+                            <label className="cd-label">Beskrivning</label>
+                            <input
+                              type="text"
+                              name="description"
+                              className="cd-input"
+                              value={editForm.description}
+                              onChange={handleEditInputChange}
+                            />
+                          </div>
+
+                          <div className="cd-form-grid">
+                            <div>
+                              <label className="cd-label">Assigned to user</label>
+                              <select
+                                name="assignedTo"
+                                className="cd-select"
+                                value={editForm.assignedTo}
+                                onChange={handleEditInputChange}
+                              >
+                                <option value="Everybody">Everybody</option>
+                                <option value="Admin">Admin</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="cd-label">Priority</label>
+                              <select
+                                name="priority"
+                                className="cd-select"
+                                value={editForm.priority}
+                                onChange={handleEditInputChange}
+                              >
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div className="cd-form-grid cd-mt-sm">
+                            <div>
+                              <label className="cd-label">Connect to product/service</label>
+                              <select
+                                name="productService"
+                                className="cd-select"
+                                value={editForm.productService}
+                                onChange={handleEditInputChange}
+                              >
+                                <option value="">- None -</option>
+                                {products.map((prod) => (
+                                  <option key={prod.id} value={prod.name}>
+                                    {formatProductOption(prod)}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="cd-label">Deadline</label>
+                              <input
+                                type="date"
+                                name="deadline"
+                                className="cd-input"
+                                value={editForm.deadline || ""}
+                                onChange={handleEditInputChange}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="cd-form-actions">
+                            <button
+                              type="button"
+                              className="btn-accent"
+                              onClick={() => handleSaveEdit(todo.id)}
+                              disabled={todoLoading}
+                            >
+                              Save changes
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-outline"
+                              onClick={handleCancelEdit}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    <tr>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={!!todo.done}
+                          onChange={() => handleToggleDone(todo)}
+                        />
+                      </td>
+                      <td
+                        className="cd-todo-desc-cell cd-clickable"
+                        onClick={() => handleStartEdit(todo)}
+                      >
+                        {todo.description}
+                      </td>
+                      <td className="cd-muted-text">
+                        {todo.assignedTo || "Everybody"}
+                      </td>
+                      <td>{(Number(todo.hours) || 0).toFixed(1)} h</td>
+                      <td>{(Number(todo.unbilled) || 0).toFixed(1)} h</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="cd-circle-delete-btn"
+                          title="Delete todo"
+                          onClick={() => handleDelete(todo.id)}
+                        >
+                          ⊖
+                        </button>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
               ))
             ) : (
               <tr>

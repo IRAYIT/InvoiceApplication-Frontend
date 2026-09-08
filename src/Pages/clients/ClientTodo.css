@@ -56,3 +56,24 @@
     color: #2e7d32;
     font-weight: 500;
   }
+  .cd-clickable {
+    cursor: pointer;
+  }
+  
+  .cd-clickable:hover {
+    text-decoration: underline;
+  }
+  
+  .cd-todo-edit-panel {
+    background: #fffdf5;
+    border: 1px solid #faeccb;
+    border-radius: 6px;
+    padding: 16px;
+    margin: 8px 0;
+    text-align: left;
+  }
+  
+  .cd-todo-edit-row td {
+    padding: 0;
+    border: none;
+  }
