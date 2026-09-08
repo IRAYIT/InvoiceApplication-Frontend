@@ -18,9 +18,8 @@ import EstimateDetail from "./Pages/estimates/EstimateDetail";
 import ManageOrders from "./Pages/orders/ManageOrders";
 import OrderForm from "./Pages/orders/OrderForm";
 
-import ManageProducts from "./Pages/Products/ManageProducts";
-import ProductDetail from "./Pages/Products/ProductDetail";
-
+import ManageProducts from "./Pages/products/ManageProducts";
+import ProductDetail from "./Pages/products/Productdetail";
 import "./App.css";
 
 function getInitialRouteFromUrl() {
