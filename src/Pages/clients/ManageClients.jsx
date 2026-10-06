@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import ClientService from "../../services/ClientService";
 import ClientForm from "./ClientForm";
 import "./ManageClients.css";
@@ -67,6 +68,7 @@ const IconClock = () => (
 );
 
 function ManageClients({ onNavigate }) {
+  const { t } = useTranslation();
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -77,6 +79,10 @@ function ManageClients({ onNavigate }) {
   const [deleteClientId, setDeleteClientId] = useState(null);
   const [deleteClientName, setDeleteClientName] = useState("");
   const [deleteClientLoading, setDeleteClientLoading] = useState(false);
+
+  const fieldLabels = Object.fromEntries(
+    Object.keys({ number:1,name:1,companyRegistrationNumber:1,vatNo:1,phone:1,mobilePhone:1,phoneHome:1,fax:1,email:1,yourReference:1,addressCareOf:1,addressStreetAddress:1,addressZipCode:1,addressCity:1,addressCountry:1,deliveryCareOf:1,deliveryStreetAddress:1,deliveryZipCode:1,deliveryCity:1,deliveryCountry:1,contacts:1 }).map((k) => [k, t(`clients.print.fields.${k}`)])
+  );
 
   const [printFields, setPrintFields] = useState({
     number: true,
@@ -115,7 +121,7 @@ function ManageClients({ onNavigate }) {
       const data = await ClientService.getAllClients();
       setClients(data);
     } catch (err) {
-      setError("Failed to load clients. Please try again.");
+      setError(t("clients.errors.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -163,36 +169,9 @@ function ManageClients({ onNavigate }) {
     );
 
     if (selectedFields.length === 0) {
-      alert("Please select at least one field to print.");
+      alert(t("clients.print.selectToPrint"));
       return;
     }
-
-    const fieldLabels = {
-      number: "Number",
-      name: "Name",
-      companyRegistrationNumber: "Company registration number",
-      vatNo: "VAT no.",
-      phone: "Phone",
-      mobilePhone: "Mobile phone",
-      phoneHome: "Phone (home)",
-      fax: "Fax",
-      email: "Email",
-      yourReference: "Your reference",
-    
-      addressCareOf: "C/O",
-      addressStreetAddress: "Address",
-      addressZipCode: "Zip code",
-      addressCity: "City",
-      addressCountry: "Country",
-    
-      deliveryCareOf: "C/O",
-      deliveryStreetAddress: "Delivery address street address",
-      deliveryZipCode: "Delivery address zip code",
-      deliveryCity: "Delivery address city",
-      deliveryCountry: "Delivery address country",
-    
-      contacts: "Contacts",
-    };
 
     const getFieldValue = (client, field) => {
       switch (field) {
@@ -300,7 +279,7 @@ function ManageClients({ onNavigate }) {
     const printWindow = window.open("", "_blank");
 
     if (!printWindow) {
-      alert("Please allow pop-ups to print the client list.");
+      alert(t("clients.print.allowPopupsList"));
       return;
     }
 
@@ -308,7 +287,7 @@ function ManageClients({ onNavigate }) {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Client List</title>
+          <title>${t("clients.print.title")}</title>
 
           <style>
             @page {
@@ -359,7 +338,7 @@ function ManageClients({ onNavigate }) {
         </head>
 
         <body>
-          <h1>Client list</h1>
+          <h1>${t("clients.print.title")}</h1>
 
           <table>
             <thead>
@@ -382,16 +361,16 @@ function ManageClients({ onNavigate }) {
       printWindow.focus();
       const printWindow = window.open("", "_blank");
 
-if (!printWindow) {
-  alert("Please allow pop-ups for this website.");
-  return;
-}
+      if (!printWindow) {
+        alert(t("clients.print.allowPopups"));
+        return;
+      }
 
         printWindow.document.write(`
           <!DOCTYPE html>
           <html>
             <head>
-              <title>Client list</title>
+              <title>${t("clients.print.title")}</title>
               <style>
                 body {
                   font-family: Arial, sans-serif;
@@ -425,7 +404,7 @@ if (!printWindow) {
             </head>
 
             <body>
-              <h1>Client list</h1>
+              <h1>${t("clients.print.title")}</h1>
 
               <table>
                 <thead>
@@ -462,6 +441,124 @@ if (!printWindow) {
       printWindow.document.close();
       printWindow.close();
     };
+  };
+
+  const handleExportCSV = () => {
+    const selectedFields = Object.keys(printFields).filter(
+      (field) => printFields[field]
+    );
+  
+    if (selectedFields.length === 0) {
+      alert(t("clients.print.selectToExport"));
+      return;
+    }
+
+    const getFieldValue = (client, field) => {
+      switch (field) {
+        case "number":
+          return client.number || client.id || "";
+  
+        case "name":
+          return getClientDisplayName(client);
+  
+        case "companyRegistrationNumber":
+          return client.companyRegNo || "";
+  
+        case "vatNo":
+          return client.vatNo || "";
+  
+        case "phone":
+          return client.phone || "";
+  
+        case "mobilePhone":
+          return client.phoneMobile || "";
+  
+        case "phoneHome":
+          return client.phoneHome || "";
+  
+        case "fax":
+          return client.fax || "";
+  
+        case "email":
+          return client.email || "";
+  
+        case "yourReference":
+          return client.yourReference || "";
+  
+        case "addressCareOf":
+          return client.address?.careOf || "";
+  
+        case "addressStreetAddress":
+          return client.address?.streetAddress || "";
+  
+        case "addressZipCode":
+          return client.address?.zipCode || "";
+  
+        case "addressCity":
+          return client.address?.city || "";
+  
+        case "addressCountry":
+          return client.address?.country || "";
+  
+        case "deliveryCareOf":
+          return client.deliveryAddress?.careOf || "";
+  
+        case "deliveryStreetAddress":
+          return client.deliveryAddress?.streetAddress || "";
+  
+        case "deliveryZipCode":
+          return client.deliveryAddress?.zipCode || "";
+  
+        case "deliveryCity":
+          return client.deliveryAddress?.city || "";
+  
+        case "deliveryCountry":
+          return client.deliveryAddress?.country || "";
+  
+        case "contacts":
+          return Array.isArray(client.contacts)
+            ? client.contacts
+                .map((contact) => contact.name || contact.email || "")
+                .filter(Boolean)
+                .join(", ")
+            : "";
+  
+        default:
+          return "";
+      }
+    };
+  
+    const escapeCSV = (value) => {
+      return `"${String(value ?? "").replace(/"/g, '""')}"`;
+    };
+  
+    const headerRow = selectedFields
+      .map((field) => escapeCSV(fieldLabels[field]))
+      .join(",");
+  
+    const dataRows = clients.map((client) =>
+      selectedFields
+        .map((field) => escapeCSV(getFieldValue(client, field)))
+        .join(",")
+    );
+  
+    const csvContent = [headerRow, ...dataRows].join("\r\n");
+  
+    const blob = new Blob(["\uFEFF" + csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+  
+    const url = URL.createObjectURL(blob);
+  
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "clients.csv";
+  
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  
+    URL.revokeObjectURL(url);
   };
 
   // Filters the client list by name, city, or email as the user types.
@@ -529,7 +626,7 @@ if (!printWindow) {
         await fetchClients();
       } catch (err) {
         console.error("Error deleting client:", err);
-        alert("Failed to delete client.");
+        alert(t("clients.errors.deleteFailed"));
       } finally {
         setDeleteClientLoading(false);
       }
@@ -542,12 +639,12 @@ if (!printWindow) {
 
   return (
     <div className="clients-page">
-      <h1 className="page-title">Clients</h1>
+      <h1 className="page-title">{t("clients.title")}</h1>
 
       <div className="toolbar">
         <button className="btn-success" onClick={handleNewClientClick}>
           <IconUser />
-          New client
+          {t("clients.newClient")}
         </button>
 
         <button
@@ -555,12 +652,12 @@ if (!printWindow) {
           onClick={handlePrintClick}
         >
           <IconPrinter />
-          Print list of clients
+          {t("clients.printList")}
         </button>
         <div className="search-box">
           <input
             type="text"
-            placeholder="Search"
+            placeholder={t("common.search")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -583,7 +680,7 @@ if (!printWindow) {
         {showPrintPanel && (
           <div className="print-options">
 
-            <h2>Included fields</h2>
+          <h2>{t("clients.print.includedFields")}</h2>
 
             <div className="print-fields-grid">
 
@@ -593,7 +690,7 @@ if (!printWindow) {
                   checked={printFields.number}
                   onChange={() => handlePrintOptionChange("number")}
                 />
-                <span>Number</span>
+                <span>{t("clients.print.fields.number")}</span>
               </label>
 
               <label>
@@ -602,7 +699,7 @@ if (!printWindow) {
                   checked={printFields.name}
                   onChange={() => handlePrintOptionChange("name")}
                 />
-                <span>Name</span>
+                <span>{t("clients.print.fields.name")}</span>
               </label>
 
               <label>
@@ -613,7 +710,7 @@ if (!printWindow) {
                     handlePrintOptionChange("companyRegistrationNumber")
                   }
                 />
-                <span>Company registration number</span>
+                <span>{t("clients.print.fields.companyRegistrationNumber")}</span>
               </label>
 
               <label>
@@ -622,7 +719,7 @@ if (!printWindow) {
                   checked={printFields.vatNo}
                   onChange={() => handlePrintOptionChange("vatNo")}
                 />
-                <span>VAT no.</span>
+                <span>{t("clients.print.fields.vatNo")}</span>
               </label>
 
               <label>
@@ -631,7 +728,7 @@ if (!printWindow) {
                   checked={printFields.phone}
                   onChange={() => handlePrintOptionChange("phone")}
                 />
-                <span>Phone</span>
+                <span>{t("clients.print.fields.phone")}</span>
               </label>
 
               <label>
@@ -640,7 +737,7 @@ if (!printWindow) {
                   checked={printFields.mobilePhone}
                   onChange={() => handlePrintOptionChange("mobilePhone")}
                 />
-                <span>Mobile phone</span>
+                <span>{t("clients.print.fields.mobilePhone")}</span>
               </label>
 
               <label>
@@ -649,7 +746,7 @@ if (!printWindow) {
                   checked={printFields.phoneHome}
                   onChange={() => handlePrintOptionChange("phoneHome")}
                 />
-                <span>Phone (home)</span>
+                <span>{t("clients.print.fields.phoneHome")}</span>
               </label>
 
               <label>
@@ -658,7 +755,7 @@ if (!printWindow) {
                   checked={printFields.fax}
                   onChange={() => handlePrintOptionChange("fax")}
                 />
-                <span>Fax</span>
+                <span>{t("clients.print.fields.fax")}</span>
               </label>
 
               <label>
@@ -667,7 +764,7 @@ if (!printWindow) {
                   checked={printFields.email}
                   onChange={() => handlePrintOptionChange("email")}
                 />
-                <span>Email</span>
+                <span>{t("clients.print.fields.email")}</span>
               </label>
 
               <label>
@@ -676,7 +773,7 @@ if (!printWindow) {
                   checked={printFields.yourReference}
                   onChange={() => handlePrintOptionChange("yourReference")}
                 />
-                <span>Your reference</span>
+                <span>{t("clients.print.fields.yourReference")}</span>
               </label>
 
               {/* Main Address */}
@@ -687,7 +784,7 @@ if (!printWindow) {
                   checked={printFields.addressCareOf}
                   onChange={() => handlePrintOptionChange("addressCareOf")}
                 />
-                <span>C/O</span>
+                <span>{t("clients.print.fields.addressCareOf")}</span>
               </label>
 
               <label>
@@ -698,7 +795,7 @@ if (!printWindow) {
                     handlePrintOptionChange("addressStreetAddress")
                   }
                 />
-                <span>Address</span>
+                <span>{t("clients.print.fields.addressStreetAddress")}</span>
               </label>
 
               <label>
@@ -707,7 +804,7 @@ if (!printWindow) {
                   checked={printFields.addressZipCode}
                   onChange={() => handlePrintOptionChange("addressZipCode")}
                 />
-                <span>Zip code</span>
+                <span>{t("clients.print.fields.addressZipCode")}</span>
               </label>
 
               <label>
@@ -716,7 +813,7 @@ if (!printWindow) {
                   checked={printFields.addressCity}
                   onChange={() => handlePrintOptionChange("addressCity")}
                 />
-                <span>City</span>
+                <span>{t("clients.print.fields.addressCity")}</span>
               </label>
 
               <label>
@@ -725,7 +822,7 @@ if (!printWindow) {
                   checked={printFields.addressCountry}
                   onChange={() => handlePrintOptionChange("addressCountry")}
                 />
-                <span>Country</span>
+                <span>{t("clients.print.fields.addressCountry")}</span>
               </label>
 
               {/* Delivery Address */}
@@ -736,7 +833,7 @@ if (!printWindow) {
                   checked={printFields.deliveryCareOf}
                   onChange={() => handlePrintOptionChange("deliveryCareOf")}
                 />
-                <span>Delivery C/O</span>
+                <span>{t("clients.print.fields.deliveryCareOf")}</span>
               </label>
 
               <label>
@@ -747,7 +844,7 @@ if (!printWindow) {
                     handlePrintOptionChange("deliveryStreetAddress")
                   }
                 />
-                <span>Delivery address street address</span>
+                <span>{t("clients.print.fields.deliveryStreetAddress")}</span>
               </label>
 
               <label>
@@ -758,7 +855,7 @@ if (!printWindow) {
                     handlePrintOptionChange("deliveryZipCode")
                   }
                 />
-                <span>Delivery address zip code</span>
+                <span>{t("clients.print.fields.deliveryZipCode")}</span>
               </label>
 
               <label>
@@ -769,7 +866,7 @@ if (!printWindow) {
                     handlePrintOptionChange("deliveryCity")
                   }
                 />
-                <span>Delivery address city</span>
+                <span>{t("clients.print.fields.deliveryCity")}</span>
               </label>
 
               <label>
@@ -780,7 +877,7 @@ if (!printWindow) {
                     handlePrintOptionChange("deliveryCountry")
                   }
                 />
-                <span>Delivery address country</span>
+                <span>{t("clients.print.fields.deliveryCountry")}</span>
               </label>
 
               <label>
@@ -789,7 +886,7 @@ if (!printWindow) {
                   checked={printFields.contacts}
                   onChange={() => handlePrintOptionChange("contacts")}
                 />
-                <span>Contacts</span>
+                <span>{t("clients.print.fields.contacts")}</span>
               </label>
 
             </div>
@@ -801,20 +898,20 @@ if (!printWindow) {
               <button
                 className="btn-print-selected"
                 onClick={handlePrintClients}
-              >
+                >
                 <IconPrinter />
-                Print list of clients
+                {t("clients.printList")}
               </button>
 
-              <button className="btn-export-csv">
-                Export as csv file
+              <button className="btn-export-csv" onClick={handleExportCSV}>
+                {t("clients.print.exportCsv")}
               </button>
 
               <button
                 className="btn-cancel-print"
                 onClick={() => setShowPrintPanel(false)}
               >
-                Cancel
+                {t("common.cancel")}
               </button>
 
             </div>
@@ -825,18 +922,18 @@ if (!printWindow) {
           <table className="clients-table">
             <thead>
               <tr>
-                <th>#</th>
-                <th>NAME</th>
-                <th>CITY</th>
-                <th>UPDATED <span className="sort-arrow">↑</span></th>
-                <th>EMAIL</th>
+              <th>#</th>
+                <th>{t("clients.table.name")}</th>
+                <th>{t("clients.table.city")}</th>
+                <th>{t("clients.table.updated")} <span className="sort-arrow">↑</span></th>
+                <th>{t("clients.table.email")}</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="6">Loading...</td>
+                  <td colSpan="6">{t("clients.loading")}</td>
                 </tr>
               ) : error ? (
                 <tr>
@@ -845,9 +942,9 @@ if (!printWindow) {
               ) : filteredClients.length === 0 ? (
                 <tr>
                   <td colSpan="6">
-                    {normalizedSearch
-                      ? `No clients match "${searchTerm}".`
-                      : "No clients yet."}
+                  {normalizedSearch
+                      ? t("clients.noMatch", { term: searchTerm })
+                      : t("clients.noClients")}
                   </td>
                 </tr>
               ) : (
@@ -906,15 +1003,15 @@ if (!printWindow) {
                       {openMenuId === client.id && (
                         <div className="client-row-menu">
                           <button onClick={(e) => handleNewInvoice(e, client.id)}>
-                            New invoice
+                            {t("clients.rowMenu.newInvoice")}
                           </button>
 
                           <button onClick={(e) => handleNewEstimate(e, client.id)}>
-                            New estimate
+                            {t("clients.rowMenu.newEstimate")}
                           </button>
 
                           <button onClick={(e) => handleDeleteClient(e, client.id)}>
-                            Delete
+                            {t("common.delete")}
                           </button>
                         </div>
                       )}
@@ -927,11 +1024,11 @@ if (!printWindow) {
         </div>
 
         <div className="page-footer">
-          <span><IconHeart /> FAQ</span>
-          <span><IconHelp /> Help</span>
-          <span><IconMail /> Email us</span>
-          <span><IconPhone /> Ring oss</span>
-          <span><IconClock /> Mon - Thu 09:00 - 12:00</span>
+          <span><IconHeart /> {t("footer.faq")}</span>
+          <span><IconHelp /> {t("footer.help")}</span>
+          <span><IconMail /> {t("footer.emailUs")}</span>
+          <span><IconPhone /> {t("footer.callUs")}</span>
+          <span><IconClock /> {t("footer.hours")}</span>
         </div>
       </div>
 
@@ -953,15 +1050,15 @@ if (!printWindow) {
               !
             </div>
 
-            <h3>Delete client</h3>
+            <h3>{t("clients.delete.title")}</h3>
 
             <p>
-              Are you sure you want to delete{" "}
+              {t("clients.delete.confirmPrefix")}{" "}
               <strong>{deleteClientName}</strong>?
             </p>
 
             <p className="client-delete-modal-warning">
-              This action cannot be undone.
+              {t("clients.delete.warning")}
             </p>
 
             <div className="client-delete-modal-actions">
@@ -972,7 +1069,7 @@ if (!printWindow) {
                 onClick={handleCancelDeleteClient}
                 disabled={deleteClientLoading}
               >
-                Cancel
+                {t("common.cancel")}
               </button>
 
               <button
@@ -981,7 +1078,7 @@ if (!printWindow) {
                 onClick={handleConfirmDeleteClient}
                 disabled={deleteClientLoading}
               >
-                {deleteClientLoading ? "Deleting..." : "Delete"}
+                {deleteClientLoading ? t("clients.delete.deleting") : t("common.delete")}
               </button>
 
             </div>

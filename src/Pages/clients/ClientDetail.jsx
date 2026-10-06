@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import ClientService from "../../services/ClientService";
 import InvoicesService from "../../services/InvoicesService";
 import PaymentModal from "../Invoices/PaymentModal";
@@ -6,6 +7,8 @@ import ManageInvoices from "../Invoices/ManageInvoices";
 import EstimateService from "../../services/EstimateService";
 import NotesService from "../../services/NoteService";
 import ClientTodos from "./ClientTodo";
+import ClientTimeReports from "./ClientTimeReports";
+import ClientContact from "./ClientContact";
 import "./ClientDetail.css";
 
 const IconEstimate = () => (
@@ -43,34 +46,43 @@ const IconTrash = (props) => (
 
 const TABS = ["Invoices", "Estimates", "Orders", "Notes", "Todos", "Time reports"];
 
+const TAB_LABEL_KEYS = {
+  Invoices: "clients.detail.tabs.invoices",
+  Estimates: "clients.detail.tabs.estimates",
+  Orders: "clients.detail.tabs.orders",
+  Notes: "clients.detail.tabs.notes",
+  Todos: "clients.detail.tabs.todos",
+  "Time reports": "clients.detail.tabs.timeReports",
+};
+
 const ESTIMATE_STATUS_META = {
   SENT: {
-    label: "Waiting answer",
+    labelKey: "clients.detail.estimateStatus.waiting",
     className: "cd-status-unanswered",
   },
 
   APPROVED: {
-    label: "Accepted",
+    labelKey: "clients.detail.estimateStatus.accepted",
     className: "cd-status-approved",
   },
 
   REJECTED: {
-    label: "Rejected",
+    labelKey: "clients.detail.estimateStatus.rejected",
     className: "cd-status-rejected",
   },
 
   COMPLETED: {
-    label: "Completed",
+    labelKey: "clients.detail.estimateStatus.completed",
     className: "cd-status-completed",
   },
 
   CONVERTED: {
-    label: "Completed",
+    labelKey: "clients.detail.estimateStatus.completed",
     className: "cd-status-completed",
   },
 
   DRAFT: {
-    label: "Draft",
+    labelKey: "clients.detail.estimateStatus.draft",
     className: "cd-status-draft",
   },
 };
@@ -78,22 +90,23 @@ const ESTIMATE_STATUS_META = {
 const ESTIMATE_STATUS_OPTIONS = [
   {
     value: "APPROVED",
-    label: "Accepted",
+    labelKey: "clients.detail.estimateStatus.accepted",
     className: "cd-status-approved",
   },
   {
     value: "REJECTED",
-    label: "Rejected",
+    labelKey: "clients.detail.estimateStatus.rejected",
     className: "cd-status-rejected",
   },
   {
     value: "COMPLETED",
-    label: "Completed",
+    labelKey: "clients.detail.estimateStatus.completed",
     className: "cd-status-completed",
   },
 ];
 
 function ClientDetail({ clientId, onNavigate }) {
+  const { t, i18n } = useTranslation();
   const [client, setClient] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -135,7 +148,7 @@ function ClientDetail({ clientId, onNavigate }) {
       const data = await ClientService.getClientById(clientId);
       setClient(data);
     } catch (err) {
-      setError("Couldn't load this client. Please go back and try again.");
+      setError(t("clients.edit.loadFailedBack"));
     } finally {
       setLoading(false);
     }
@@ -202,7 +215,7 @@ function ClientDetail({ clientId, onNavigate }) {
     } catch (err) {
       console.error("Error fetching client notes:", err);
       setNotes([]);
-      setNoteError("Couldn't load notes.");
+      setNoteError(t("clients.detail.errors.notesLoadFailed"));
     } finally {
       setNoteLoading(false);
     }
@@ -255,12 +268,12 @@ function ClientDetail({ clientId, onNavigate }) {
 
   const handleSaveNote = async () => {
     if (!noteForm.subject.trim()) {
-      setNoteError("Subject is required.");
+      setNoteError(t("clients.detail.errors.subjectRequired"));
       return;
     }
 
     if (!noteForm.noteText.trim()) {
-      setNoteError("Note text is required.");
+      setNoteError(t("clients.detail.errors.noteTextRequired"));
       return;
     }
 
@@ -324,7 +337,7 @@ function ClientDetail({ clientId, onNavigate }) {
       setNoteError(
         err?.response?.data?.message ||
         err?.response?.data ||
-        "Failed to save note."
+        t("clients.detail.errors.saveNoteFailed")
       );
 
     } finally {
@@ -352,7 +365,7 @@ function ClientDetail({ clientId, onNavigate }) {
       setNoteError(
         err?.response?.data?.message ||
         err?.response?.data ||
-        "Failed to delete note."
+        t("clients.detail.errors.deleteNoteFailed")
       );
     }
   };
@@ -366,7 +379,7 @@ function ClientDetail({ clientId, onNavigate }) {
       return "—";
     }
 
-    return value.toLocaleString("en-GB", {
+    return value.toLocaleString(i18n.language?.startsWith("sv") ? "sv-SE" : "en-GB", {
       day: "numeric",
       month: "short",
       year: "numeric",
@@ -417,7 +430,7 @@ function ClientDetail({ clientId, onNavigate }) {
   
       alert(
         err?.response?.data?.message ||
-          "Failed to update estimate status."
+          t("clients.detail.errors.updateEstimateStatusFailed")
       );
     }
   };
@@ -435,9 +448,9 @@ function ClientDetail({ clientId, onNavigate }) {
       console.error("Error deleting estimate:", err);
   
       const message =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        "This estimate cannot be deleted.";
+      err?.response?.data?.message ||
+      err?.response?.data?.error ||
+      t("clients.detail.errors.estimateCannotDelete");
   
       setEstimateDeleteError(message);
     }
@@ -491,25 +504,23 @@ function ClientDetail({ clientId, onNavigate }) {
 
   const getDeliveryMethodLabel = (method) => {
     const map = {
-      email: "Email",
-      epost_sms: "E-post + SMS",
-      letter: "Letter",
-      e_invoice: "E-invoice",
+      email: t("clients.form.email"),
+      epost_sms: t("clients.form.deliveryEmailSms"),
+      letter: t("clients.form.deliveryLetter"),
+      e_invoice: t("clients.form.deliveryEInvoice"),
     };
-    return map[method] || "Email";
+    return map[method] || t("clients.form.email");
   };
 
   if (loading) {
-    return <div className="client-detail-page">Loading client...</div>;
+    return <div className="client-detail-page">{t("clients.form.loadingClient")}</div>;
   }
 
   if (error || !client) {
     return (
       <div className="client-detail-page">
-        <p className="cd-error">{error || "Client not found."}</p>
-        <button className="btn-outline" onClick={() => onNavigate && onNavigate("clients")}>
-          Back to clients
-        </button>
+        <p className="cd-error">{error || t("clients.form.notFound")}</p>
+        <button className="btn-outline" onClick={() => onNavigate && onNavigate("clients")}>{t("clients.edit.backToClients")}</button>
       </div>
     );
   }
@@ -526,24 +537,23 @@ function ClientDetail({ clientId, onNavigate }) {
         onClick={() =>
           onNavigate && onNavigate("newInvoice", client.id)
         }
-      >
-        New invoice
-      </button>
+      >{t("clients.edit.newInvoice")}</button>
       <button
           className="btn-success"
           onClick={() =>
             onNavigate && onNavigate("newEstimate", client.id)
           }
-        >
-          New estimate
-        </button>
-        <button className="btn-outline btn-accent">
-          <IconOrder />
-          New order
-        </button>
-        <div className="cd-search">
-          <input type="text" placeholder="Search" />
-        </div>
+        >{t("clients.edit.newEstimate")}</button>
+        <button
+            className="btn-outline btn-accent"
+            onClick={() =>
+              onNavigate && onNavigate("newOrder", client.id)
+            }
+            >
+              <IconOrder />{t("clients.edit.newOrder")}</button>
+          <div className="cd-search">
+            <input type="text" placeholder={t("common.search")} />
+          </div>
       </div>
 
       <div className="cd-body">
@@ -558,19 +568,19 @@ function ClientDetail({ clientId, onNavigate }) {
           {client.clientType === "company" ? (
             <>
               <div>
-                <p className="cd-label">Company registration number</p>
+                <p className="cd-label">{t("clients.form.companyRegistrationNumber")}</p>
                 <p className="cd-value">
                   {client.companyRegNo || "—"}
                 </p>
 
-                <p className="cd-label cd-label-gap">VAT no.</p>
+                <p className="cd-label cd-label-gap">{t("clients.form.vatNo")}</p>
                 <p className="cd-value">
                   {client.vatNo || "—"}
                 </p>
               </div>
 
               <div>
-                <p className="cd-label">Bill to</p>
+                <p className="cd-label">{t("clients.detail.billTo")}</p>
 
                 {getBillToLines(client).length > 0 ? (
                   getBillToLines(client).map((line, i) => (
@@ -586,14 +596,14 @@ function ClientDetail({ clientId, onNavigate }) {
           ) : (
             <>
               <div>
-                <p className="cd-label">Personal id no.</p>
+                <p className="cd-label">{t("clients.form.personalIdNo")}</p>
                 <p className="cd-value">
                   {client.personalIdNo || "—"}
                 </p>
               </div>
 
               <div>
-                <p className="cd-label">Bill to</p>
+                <p className="cd-label">{t("clients.detail.billTo")}</p>
 
                 {getBillToLines(client).length > 0 ? (
                   getBillToLines(client).map((line, i) => (
@@ -612,7 +622,7 @@ function ClientDetail({ clientId, onNavigate }) {
         <div className="cd-divider" />
 
         {/* Email */}
-        <p className="cd-label">Email</p>
+        <p className="cd-label">{t("clients.form.email")}</p>
 
         <a
           href={`mailto:${client.email}`}
@@ -626,8 +636,8 @@ function ClientDetail({ clientId, onNavigate }) {
         {/* Contact information + Send invoices by */}
         <div className="cd-info-grid">
 
-          <div>
-            <p className="cd-label">Contact information</p>
+        <div>
+        <p className="cd-label">{t("clients.form.contactInformation")}</p>
 
             {client.phone && (
               <p className="cd-value cd-contact-link">
@@ -655,7 +665,7 @@ function ClientDetail({ clientId, onNavigate }) {
           </div>
 
           <div>
-            <p className="cd-label">Send invoices by</p>
+            <p className="cd-label">{t("clients.form.sendInvoicesBy")}</p>
 
             <p className="cd-value">
               {getDeliveryMethodLabel(
@@ -671,15 +681,15 @@ function ClientDetail({ clientId, onNavigate }) {
         {/* Payment terms + Language */}
         <div className="cd-info-grid">
 
-          <div>
-            <p className="cd-label">Payment terms</p>
+        <div>
+        <p className="cd-label">{t("clients.form.paymentTerms")}</p>
             <p className="cd-value">
             {client.invoiceSettings?.paymentTermsDays ?? "—"}
             </p>
           </div>
 
           <div>
-            <p className="cd-label">Language</p>
+            <p className="cd-label">{t("clients.form.language")}</p>
             <p className="cd-value">
             {client.invoiceSettings?.invoiceLanguage ?? "—"}
             </p>
@@ -690,15 +700,15 @@ function ClientDetail({ clientId, onNavigate }) {
         {/* Currency + VAT */}
         <div className="cd-info-grid cd-detail-row">
 
-          <div>
-            <p className="cd-label">Currency</p>
+        <div>
+        <p className="cd-label">{t("clients.form.currency")}</p>
             <p className="cd-value">
             {client.invoiceSettings?.currency ?? "—"}
             </p>
           </div>
 
           <div>
-            <p className="cd-label">VAT for new rows</p>
+            <p className="cd-label">{t("clients.form.vatForNewRows")}</p>
             <p className="cd-value">
             {client.invoiceSettings?.defaultVatPercent ?? "—"}%
             </p>
@@ -709,15 +719,15 @@ function ClientDetail({ clientId, onNavigate }) {
         {/* Discount + Property designation */}
         <div className="cd-info-grid cd-detail-row">
 
-          <div>
-            <p className="cd-label">Discount</p>
+        <div>
+        <p className="cd-label">{t("clients.form.discount")}</p>
             <p className="cd-value">
             {client.invoiceSettings?.defaultDiscountPercent ?? 0}%
             </p>
           </div>
 
           <div>
-            <p className="cd-label">Property designation</p>
+            <p className="cd-label">{t("clients.form.propertyDesignation")}</p>
             <p className="cd-value">
             {client.rotInfo?.propertyDesignation ?? "—"}
             </p>
@@ -728,10 +738,8 @@ function ClientDetail({ clientId, onNavigate }) {
         {/* Associated company + Apartment */}
         <div className="cd-info-grid cd-detail-row">
 
-          <div>
-            <p className="cd-label">
-              Assoc. company registration number
-            </p>
+        <div>
+        <p className="cd-label">{t("clients.detail.assocCompanyRegNo")}</p>
 
             <p className="cd-value">
             {client.rotInfo?.assocCorpIdNo ?? "—"}
@@ -739,7 +747,7 @@ function ClientDetail({ clientId, onNavigate }) {
           </div>
 
           <div>
-            <p className="cd-label">Apartment designation</p>
+            <p className="cd-label">{t("clients.form.apartmentDesignation")}</p>
 
             <p className="cd-value">
             {client.rotInfo?.apartmentDesignation ?? "—"}
@@ -756,25 +764,20 @@ function ClientDetail({ clientId, onNavigate }) {
               onNavigate &&
               onNavigate("editClient", client.id)
             }
-          >
-            Edit
-          </button>
+          >{t("common.edit")}</button>
         </div>
 
       </div>
 
-          <h3 className="cd-section-heading">Contacts</h3>
-          <div className="cd-card">
-            <button className="btn-outline" disabled>
-              New contact
-            </button>
-          </div>
+      <h3 className="cd-section-heading">{t("clients.detail.contacts")}</h3>
 
-          <h3 className="cd-section-heading">Custom extra fields</h3>
+        <div className="cd-card">
+          <ClientContact clientId={clientId} />
+        </div>
+
+        <h3 className="cd-section-heading">{t("clients.detail.customExtraFields")}</h3>
           <div className="cd-card">
-            <p className="cd-muted-text">
-              Custom fields for this client aren't set up yet.
-            </p>
+            <p className="cd-muted-text">{t("clients.detail.customFieldsEmpty")}</p>
           </div>
         </div>
 
@@ -787,7 +790,7 @@ function ClientDetail({ clientId, onNavigate }) {
                 className={`cd-tab ${activeTab === tab ? "active" : ""}`}
                 onClick={() => setActiveTab(tab)}
               >
-                {tab}
+                {t(TAB_LABEL_KEYS[tab])}
               </button>
             ))}
           </div>
@@ -796,12 +799,12 @@ function ClientDetail({ clientId, onNavigate }) {
             <>
               <table className="cd-invoice-table">
                 <thead>
-                  <tr>
+                <tr>
                     <th>#</th>
-                    <th>Total</th>
-                    <th>Due date</th>
-                    <th>Paid</th>
-                    <th>Sent</th>
+                    <th>{t("clients.detail.table.total")}</th>
+                    <th>{t("clients.detail.table.dueDate")}</th>
+                    <th>{t("clients.detail.table.paid")}</th>
+                    <th>{t("clients.detail.table.sent")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -857,20 +860,18 @@ function ClientDetail({ clientId, onNavigate }) {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="5" className="cd-empty-row">
-                          No invoices yet for this client.
-                        </td>
+                        <td colSpan="5" className="cd-empty-row">{t("clients.detail.noInvoices")}</td>
                       </tr>
                     )}
                 </tbody>
               </table>
               <div className="cd-totals">
 
-                <div className="cd-total-section">
-                  <h3>Total this year</h3>
+              <div className="cd-total-section">
+                  <h3>{t("clients.detail.totalThisYear")}</h3>
 
                   <p>
-                    {invoices.length} invoices in{" "}
+                    {t("clients.detail.invoicesIn", { count: invoices.length })}{" "}
                     <strong>
                       {invoices[0]?.currency || client.currency || ""}
                     </strong>
@@ -897,10 +898,10 @@ function ClientDetail({ clientId, onNavigate }) {
                 </div>
 
                 <div className="cd-total-section">
-                  <h3>Running total</h3>
+                  <h3>{t("clients.detail.runningTotal")}</h3>
 
                   <p>
-                    {invoices.length} invoices in{" "}
+                    {t("clients.detail.invoicesIn", { count: invoices.length })}{" "}
                     <strong>
                       {invoices[0]?.currency || client.currency || ""}
                     </strong>
@@ -932,12 +933,12 @@ function ClientDetail({ clientId, onNavigate }) {
                       <table className="cd-invoice-table cd-estimate-table">
                     
                         <thead>
-                          <tr>
+                        <tr>
                             <th>#</th>
-                            <th>Total</th>
-                            <th>Valid until</th>
-                            <th>Sent</th>
-                            <th>Status</th>
+                            <th>{t("clients.detail.table.total")}</th>
+                            <th>{t("clients.detail.table.validUntil")}</th>
+                            <th>{t("clients.detail.table.sent")}</th>
+                            <th>{t("clients.detail.table.status")}</th>
                             <th className="cd-estimate-action-header"></th>
                           </tr>
                         </thead>
@@ -1022,7 +1023,7 @@ function ClientDetail({ clientId, onNavigate }) {
                                       >
                     
                                         <span>
-                                          {statusMeta.label}
+                                          {t(statusMeta.labelKey)}
                                         </span>
                     
                                         <span className="cd-status-arrow">
@@ -1056,7 +1057,7 @@ function ClientDetail({ clientId, onNavigate }) {
                                                 />
                     
                                                 <span>
-                                                  {option.label}
+                                                  {t(option.labelKey)}
                                                 </span>
                     
                                               </button>
@@ -1078,7 +1079,7 @@ function ClientDetail({ clientId, onNavigate }) {
                                     <button
                                       type="button"
                                       className="cd-estimate-delete-btn"
-                                      title="Delete estimate"
+                                      title={t("clients.detail.deleteEstimate")}
                                       onClick={() =>
                                         handleDeleteEstimate(
                                           estimate.id
@@ -1100,9 +1101,7 @@ function ClientDetail({ clientId, onNavigate }) {
                               <td
                                 colSpan="6"
                                 className="cd-empty-row"
-                              >
-                                No estimates yet for this client.
-                              </td>
+                              >{t("clients.detail.noEstimates")}</td>
                             </tr>
                     
                           )}
@@ -1118,14 +1117,12 @@ function ClientDetail({ clientId, onNavigate }) {
                 type="button"
                 className="btn-success"
                 onClick={handleNewNote}
-            >
-                New note
-            </button>
+            >{t("clients.detail.notes.newNote")}</button>
 
             <div className="cd-notes-search">
                 <input
                     type="text"
-                    placeholder="Search"
+                    placeholder={t("common.search")}
                     value={noteSearch}
                     onChange={handleNoteSearch}
                 />
@@ -1134,30 +1131,30 @@ function ClientDetail({ clientId, onNavigate }) {
 
         {showNoteForm && (
             <div className="cd-note-form">
-                <h3>{editingNote ? "Edit note" : "New note"}</h3>
+                <h3>{editingNote ? t("clients.detail.notes.editNote") : t("clients.detail.notes.newNote")}</h3>
 
                 {noteError && (
                     <p className="cd-note-error">{noteError}</p>
                 )}
 
                 <div className="cd-note-form-group">
-                    <label>Subject</label>
+                    <label>{t("clients.detail.notes.subject")}</label>
                     <input
                         type="text"
                         name="subject"
                         value={noteForm.subject}
                         onChange={handleNoteInputChange}
-                        placeholder="Subject"
+                        placeholder={t("clients.detail.notes.subject")}
                     />
                 </div>
 
                 <div className="cd-note-form-group">
-                    <label>Note text</label>
+                    <label>{t("clients.detail.notes.noteText")}</label>
                     <textarea
                         name="noteText"
                         value={noteForm.noteText}
                         onChange={handleNoteInputChange}
-                        placeholder="Note text"
+                        placeholder={t("clients.detail.notes.noteText")}
                         rows="6"
                     />
                 </div>
@@ -1170,10 +1167,10 @@ function ClientDetail({ clientId, onNavigate }) {
                         disabled={noteLoading}
                     >
                         {noteLoading
-                            ? "Saving..."
+                            ? t("common.saving")
                             : editingNote
-                            ? "Update note"
-                            : "Create note"}
+                            ? t("clients.detail.notes.updateNote")
+                            : t("clients.detail.notes.createNote")}
                     </button>
 
                     <button
@@ -1181,9 +1178,7 @@ function ClientDetail({ clientId, onNavigate }) {
                         className="btn-outline"
                         onClick={handleCancelNote}
                         disabled={noteLoading}
-                    >
-                        Cancel
-                    </button>
+                    >{t("common.cancel")}</button>
                 </div>
             </div>
         )}
@@ -1195,14 +1190,14 @@ function ClientDetail({ clientId, onNavigate }) {
                     <p className="cd-note-error">{noteError}</p>
                 )}
 
-                {noteLoading ? (
-                    <p className="cd-muted-text">Loading notes...</p>
+                  {noteLoading ? (
+                    <p className="cd-muted-text">{t("clients.detail.notes.loading")}</p>
                 ) : notes.length > 0 ? (
                     <table className="cd-invoice-table cd-notes-table">
                         <thead>
-                            <tr>
-                                <th>Subject</th>
-                                <th>Last Modified</th>
+                        <tr>
+                                <th>{t("clients.detail.notes.subject")}</th>
+                                <th>{t("clients.detail.notes.lastModified")}</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -1233,14 +1228,14 @@ function ClientDetail({ clientId, onNavigate }) {
 
                                                 <div className="cd-note-dates">
                                                     <div>
-                                                        Created{" "}
+                                                        {t("clients.detail.notes.created")}{" "}
                                                         {formatNoteDate(
                                                             note.createdAt
                                                         )}
                                                     </div>
 
                                                     <div>
-                                                        Latest update at{" "}
+                                                        {t("clients.detail.notes.latestUpdateAt")}{" "}
                                                         {formatNoteDate(
                                                             note.updatedAt
                                                         )}
@@ -1251,11 +1246,9 @@ function ClientDetail({ clientId, onNavigate }) {
                                                     type="button"
                                                     className="btn-outline cd-note-edit-btn"
                                                     onClick={() =>
-                                                        handleEditNote(note)
+                                                      handleEditNote(note)
                                                     }
-                                                >
-                                                    Edit note
-                                                </button>
+                                                >{t("clients.detail.notes.editNote")}</button>
                                             </div>
                                         )}
                                     </td>
@@ -1268,7 +1261,7 @@ function ClientDetail({ clientId, onNavigate }) {
                                         <button
                                             type="button"
                                             className="cd-estimate-delete-btn"
-                                            title="Delete note"
+                                            title={t("clients.detail.notes.deleteNote")}
                                             onClick={() =>
                                                 handleDeleteNote(note.id)
                                             }
@@ -1281,21 +1274,21 @@ function ClientDetail({ clientId, onNavigate }) {
                         </tbody>
                     </table>
                 ) : (
-                    <p className="cd-muted-text">
-                        No notes yet for this client.
-                    </p>
-                )}
+                  <p className="cd-muted-text">{t("clients.detail.notes.empty")}</p>
+              )}
             </div>
         )}
 
     </div>
         ) : activeTab === "Todos" ? (
           <ClientTodos clientId={clientId} />
+        ) : activeTab === "Time reports" ? (
+          <ClientTimeReports clientId={clientId} />
         ) : (
-            <p className="cd-muted-text">
-                {activeTab} aren't available yet.
-            </p>
-        )}
+          <p className="cd-muted-text">
+              {t("clients.detail.notAvailable", { tab: t(TAB_LABEL_KEYS[activeTab]) })}
+          </p>
+      )}
         </div>
       </div>
 
@@ -1325,19 +1318,17 @@ function ClientDetail({ clientId, onNavigate }) {
 
             <div className="cd-error-modal-icon">
               !
-            </div>
+              </div>
 
-            <h3>Unable to delete estimate</h3>
+                <h3>{t("clients.detail.errors.unableToDeleteEstimate")}</h3>
 
-            <p>{estimateDeleteError}</p>
+                <p>{estimateDeleteError}</p>
 
             <button
               type="button"
               className="cd-error-modal-ok"
               onClick={() => setEstimateDeleteError(null)}
-            >
-              OK
-            </button>
+            >{t("clients.detail.ok")}</button>
 
           </div>
         </div>

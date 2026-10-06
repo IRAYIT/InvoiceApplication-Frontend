@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import ClientService from "../../services/ClientService";
 import COUNTRIES from "../../constants/countries";
 import "./ClientQuickEditModal.css";
@@ -27,10 +28,10 @@ const buildFormState = (data) => ({
 });
 
 const DELIVERY_METHODS = [
-  ["email", "Email"],
-  ["epost_sms", "E-post + SMS"],
-  ["letter", "Letter"],
-  ["e_invoice", "E-invoice"],
+  ["email", "clients.form.email"],
+  ["epost_sms", "clients.form.deliveryEmailSms"],
+  ["letter", "clients.form.deliveryLetter"],
+  ["e_invoice", "clients.form.deliveryEInvoice"],
 ];
 
 /**
@@ -48,6 +49,7 @@ const DELIVERY_METHODS = [
  *               client name without a full page reload.
  */
 export default function ClientQuickEditModal({ clientId, onClose, onUpdated }) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -64,7 +66,7 @@ export default function ClientQuickEditModal({ clientId, onClose, onUpdated }) {
         const data = await ClientService.getClientById(clientId);
         if (!cancelled) setFormData(buildFormState(data));
       } catch (err) {
-        if (!cancelled) setLoadError("Couldn't load this client.");
+        if (!cancelled) setLoadError(t("clients.form.loadFailed"));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -102,7 +104,7 @@ export default function ClientQuickEditModal({ clientId, onClose, onUpdated }) {
       onUpdated && onUpdated(updated);
       onClose && onClose();
     } catch (err) {
-      setSaveError("Failed to save changes. Please check the form and try again.");
+      setSaveError(t("clients.form.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -114,13 +116,13 @@ export default function ClientQuickEditModal({ clientId, onClose, onUpdated }) {
         {loading ? (
           <div className="cqem-state">
             <div className="cqem-spinner" />
-            <p>Loading client...</p>
+            <p>{t("clients.form.loadingClient")}</p>
           </div>
         ) : loadError || !formData ? (
           <div className="cqem-state">
-            <p className="cqem-error">{loadError || "Client not found."}</p>
+            <p className="cqem-error">{loadError || t("clients.form.notFound")}</p>
             <button className="cqem-btn-outline" onClick={onClose}>
-              Close
+              {t("common.close")}
             </button>
           </div>
         ) : (
@@ -128,7 +130,7 @@ export default function ClientQuickEditModal({ clientId, onClose, onUpdated }) {
             {saveError && <div className="cqem-error cqem-error-banner">{saveError}</div>}
 
             <div className="cqem-field">
-              <label>Customer type</label>
+            <label>{t("clients.form.customerType")}</label>
               <div className="cqem-radio-group">
                 <label className="cqem-radio-option">
                   <input
@@ -136,25 +138,21 @@ export default function ClientQuickEditModal({ clientId, onClose, onUpdated }) {
                     name="cqem-clientType"
                     checked={formData.clientType === "company"}
                     onChange={() => updateField("clientType", "company")}
-                  />
-                  Company
-                </label>
+                    />{t("clients.form.company")}</label>
                 <label className="cqem-radio-option">
                   <input
                     type="radio"
                     name="cqem-clientType"
                     checked={formData.clientType === "person"}
                     onChange={() => updateField("clientType", "person")}
-                  />
-                  Person
-                </label>
+                    />{t("clients.form.person")}</label>
               </div>
             </div>
 
             <div className="cqem-row">
               {formData.clientType === "company" ? (
                 <div className="cqem-field cqem-field-large">
-                  <label>Company name</label>
+                  <label>{t("clients.form.companyName")}</label>
                   <input
                     type="text"
                     value={formData.company}
@@ -163,17 +161,17 @@ export default function ClientQuickEditModal({ clientId, onClose, onUpdated }) {
                 </div>
               ) : (
                 <div className="cqem-field cqem-field-large">
-                  <label>Full name</label>
+                  <label>{t("clients.form.fullName")}</label>
                   <div className="cqem-row cqem-row-tight">
                     <input
                       type="text"
-                      placeholder="First name"
+                      placeholder={t("clients.form.firstName")}
                       value={formData.firstName}
                       onChange={(e) => updateField("firstName", e.target.value)}
                     />
                     <input
                       type="text"
-                      placeholder="Last name"
+                      placeholder={t("clients.form.lastName")}
                       value={formData.lastName}
                       onChange={(e) => updateField("lastName", e.target.value)}
                     />
@@ -182,8 +180,7 @@ export default function ClientQuickEditModal({ clientId, onClose, onUpdated }) {
               )}
 
               <div className="cqem-field">
-                <label>
-                  Number <span className="cqem-tooltip-icon">?</span>
+              <label>{t("clients.form.number")} <span className="cqem-tooltip-icon">?</span>
                 </label>
                 <input
                   type="text"
@@ -197,7 +194,7 @@ export default function ClientQuickEditModal({ clientId, onClose, onUpdated }) {
               {formData.clientType === "company" ? (
                 <>
                   <div className="cqem-field">
-                    <label>Company registration number</label>
+                  <label>{t("clients.form.companyRegistrationNumber")}</label>
                     <input
                       type="text"
                       value={formData.companyRegNo}
@@ -205,7 +202,7 @@ export default function ClientQuickEditModal({ clientId, onClose, onUpdated }) {
                     />
                   </div>
                   <div className="cqem-field">
-                    <label>VAT no.</label>
+                  <label>{t("clients.form.vatNo")}</label>
                     <input
                       type="text"
                       value={formData.vatNo}
@@ -215,7 +212,7 @@ export default function ClientQuickEditModal({ clientId, onClose, onUpdated }) {
                 </>
               ) : (
                 <div className="cqem-field">
-                  <label>Personal id no.</label>
+                  <label>{t("clients.form.personalIdNo")}</label>
                   <input
                     type="text"
                     value={formData.personalIdNo}
@@ -225,7 +222,7 @@ export default function ClientQuickEditModal({ clientId, onClose, onUpdated }) {
               )}
 
               <div className="cqem-field">
-                <label>C/O</label>
+              <label>{t("clients.form.careOf")}</label>
                 <input
                   type="text"
                   value={formData.address.careOf}
@@ -236,7 +233,7 @@ export default function ClientQuickEditModal({ clientId, onClose, onUpdated }) {
 
             <div className="cqem-row">
               <div className="cqem-field">
-                <label>Email</label>
+              <label>{t("clients.form.email")}</label>
                 <input
                   type="email"
                   value={formData.email}
@@ -245,7 +242,7 @@ export default function ClientQuickEditModal({ clientId, onClose, onUpdated }) {
               </div>
 
               <div className="cqem-field">
-                <label>Address</label>
+              <label>{t("clients.form.address")}</label>
                 <input
                   type="text"
                   value={formData.address.streetAddress}
@@ -256,20 +253,19 @@ export default function ClientQuickEditModal({ clientId, onClose, onUpdated }) {
 
             <div className="cqem-row">
               <div className="cqem-field-block">
-                <label className="cqem-block-label">
-                  Send invoices by <span className="cqem-tooltip-icon">?</span>
+              <label className="cqem-block-label">{t("clients.form.sendInvoicesBy")} <span className="cqem-tooltip-icon">?</span>
                 </label>
                 <div className="cqem-radio-group">
-                  {DELIVERY_METHODS.map(([value, label]) => (
+                  {DELIVERY_METHODS.map(([value, labelKey]) => (
                     <label className="cqem-radio-option" key={value}>
                       <input
                         type="radio"
                         name="cqem-sendBy"
                         checked={formData.settings.invoiceDeliveryMethod === value}
                         onChange={() => updateSettingsField("invoiceDeliveryMethod", value)}
-                      />
-                      {label}
-                    </label>
+                        />
+                        {t(labelKey)}
+                      </label>
                   ))}
                 </div>
                 <label className="cqem-checkbox-row">
@@ -277,14 +273,13 @@ export default function ClientQuickEditModal({ clientId, onClose, onUpdated }) {
                     type="checkbox"
                     checked={formData.settings.emailAttachPdf}
                     onChange={(e) => updateSettingsField("emailAttachPdf", e.target.checked)}
-                  />
-                  Always attach a PDF copy in emails <span className="cqem-tooltip-icon">?</span>
+                    />{t("clients.form.attachPdf")} <span className="cqem-tooltip-icon">?</span>
                 </label>
               </div>
 
               <div className="cqem-row cqem-row-tight">
                 <div className="cqem-field">
-                  <label>Zip code</label>
+                <label>{t("clients.form.zipCode")}</label>
                   <input
                     type="text"
                     value={formData.address.zipCode}
@@ -292,7 +287,7 @@ export default function ClientQuickEditModal({ clientId, onClose, onUpdated }) {
                   />
                 </div>
                 <div className="cqem-field">
-                  <label>City</label>
+                <label>{t("clients.form.city")}</label>
                   <input
                     type="text"
                     value={formData.address.city}
@@ -305,7 +300,7 @@ export default function ClientQuickEditModal({ clientId, onClose, onUpdated }) {
             <div className="cqem-row">
               <div />
               <div className="cqem-field">
-                <label>Country</label>
+              <label>{t("clients.form.country")}</label>
                 <select
                   value={formData.address.country}
                   onChange={(e) => updateAddressField("country", e.target.value)}
@@ -319,10 +314,10 @@ export default function ClientQuickEditModal({ clientId, onClose, onUpdated }) {
 
             <div className="cqem-actions">
               <button className="cqem-btn-success" onClick={handleUpdate} disabled={saving}>
-                {saving ? "Updating..." : "Update client"}
+              {saving ? t("clients.form.updating") : t("clients.form.updateClient")}
               </button>
               <button className="cqem-btn-outline" onClick={onClose} disabled={saving}>
-                Cancel
+                {t("common.cancel")}
               </button>
             </div>
           </>

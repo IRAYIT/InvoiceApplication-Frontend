@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   FiHome,
   FiUsers,
@@ -13,18 +14,19 @@ import {
 } from "react-icons/fi";
 
 import logo from "../assets/images/i-ray-logo.png";
+import LanguageSwitcher from "./LanguageSwitcher";
 import "./Sidebar.css";
 
 const menuItems = [
-  { key: "overview", label: "Overview", icon: FiHome },
-  { key: "clients", label: "Clients", icon: FiUsers },
-  { key: "invoices", label: "Invoices", icon: FiFileText },
-  { key: "estimates", label: "Estimates", icon: FiClipboard },
-  { key: "orders", label: "Orders", icon: FiPackage },
-  { key: "products", label: "Products", icon: FiBox },
-  { key: "accounting", label: "Accounting", icon: FiBookOpen },
-  { key: "statistics", label: "Statistics", icon: FiPieChart },
-  { key: "settings", label: "Settings", icon: FiSettings },
+  { key: "overview", labelKey: "sidebar.overview", icon: FiHome },
+  { key: "clients", labelKey: "sidebar.clients", icon: FiUsers },
+  { key: "invoices", labelKey: "sidebar.invoices", icon: FiFileText },
+  { key: "estimates", labelKey: "sidebar.estimates", icon: FiClipboard },
+  { key: "orders", labelKey: "sidebar.orders", icon: FiPackage },
+  { key: "products", labelKey: "sidebar.products", icon: FiBox },
+  { key: "accounting", labelKey: "sidebar.accounting", icon: FiBookOpen },
+  { key: "statistics", labelKey: "sidebar.statistics", icon: FiPieChart },
+  { key: "settings", labelKey: "sidebar.settings", icon: FiSettings },
 ];
 
 // "estimates" and "orders" added now that EstimateForm/OrderForm
@@ -33,6 +35,7 @@ const menuItems = [
 const availablePages = ["clients", "invoices", "estimates", "orders", "products"];
 
 const Sidebar = ({ activePage, onNavigate }) => {
+  const { t } = useTranslation();
   return (
     <div className="sidebar">
      {/* Logo */}
@@ -42,7 +45,7 @@ const Sidebar = ({ activePage, onNavigate }) => {
 </div>
       {/* Menu */}
       <nav className="menu">
-        {menuItems.map(({ key, label, icon: Icon }) => {
+        {menuItems.map(({ key, labelKey, icon: Icon }) => {
           const isActive = activePage === key;
           const isClickable = availablePages.includes(key);
 
@@ -55,11 +58,16 @@ const Sidebar = ({ activePage, onNavigate }) => {
               onClick={() => isClickable && onNavigate(key)}
             >
               <Icon className="icon" />
-              <span>{label}</span>
+              <span>{t(labelKey)}</span>
             </div>
           );
         })}
       </nav>
+
+      {/* Language selector */}
+      <div style={{ padding: "0 12px 12px" }}>
+        <LanguageSwitcher />
+      </div>
 
       {/* User Profile */}
       <div className="profile">

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import ClientService from "../../services/ClientService";
 import COUNTRIES from "../../constants/countries";
 import "./EditClientForm.css";
@@ -50,13 +51,14 @@ const buildFormState = (data) => ({
 });
 
 const DELIVERY_METHODS = [
-  ["email", "Email"],
-  ["epost_sms", "E-post + SMS"],
-  ["letter", "Letter"],
-  ["e_invoice", "E-invoice"],
+  ["email", "clients.form.email"],
+  ["epost_sms", "clients.form.deliveryEmailSms"],
+  ["letter", "clients.form.deliveryLetter"],
+  ["e_invoice", "clients.form.deliveryEInvoice"],
 ];
 
 function EditClientForm({ clientId, onNavigate }) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
   const [addressTab, setAddressTab] = useState("billing");
@@ -75,7 +77,7 @@ function EditClientForm({ clientId, onNavigate }) {
         const data = await ClientService.getClientById(clientId);
         if (!cancelled) setFormData(buildFormState(data));
       } catch (err) {
-        if (!cancelled) setLoadError("Couldn't load this client. Please go back and try again.");
+        if (!cancelled) setLoadError(t("clients.edit.loadFailedBack"));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -100,7 +102,7 @@ function EditClientForm({ clientId, onNavigate }) {
       await ClientService.updateClient(clientId, formData);
       onNavigate && onNavigate("clientDetail", clientId);
     } catch (err) {
-      setSaveError("Failed to save changes. Please check the form and try again.");
+      setSaveError(t("clients.form.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -115,7 +117,7 @@ function EditClientForm({ clientId, onNavigate }) {
       <div className="ecf-wrapper">
         <div className="ecf-card ecf-state-card">
           <div className="ecf-spinner" />
-          <p className="ecf-state-text">Loading client...</p>
+                    <p className="ecf-state-text">{t("clients.form.loadingClient")}</p>
         </div>
       </div>
     );
@@ -125,10 +127,8 @@ function EditClientForm({ clientId, onNavigate }) {
     return (
       <div className="ecf-wrapper">
         <div className="ecf-card ecf-state-card">
-          <p className="ecf-error">{loadError || "Client not found."}</p>
-          <button className="btn-outline" onClick={() => onNavigate && onNavigate("clients")}>
-            Back to clients
-          </button>
+        <p className="ecf-error">{loadError || t("clients.form.notFound")}</p>
+        <button className="btn-outline" onClick={() => onNavigate && onNavigate("clients")}>{t("clients.edit.backToClients")}</button>
         </div>
       </div>
     );
@@ -139,13 +139,11 @@ function EditClientForm({ clientId, onNavigate }) {
   return (
     <div className="ecf-wrapper">
       <div className="toolbar">
-        <button className="btn-success" onClick={() => onNavigate && onNavigate("newInvoice")}>
-          New invoice
-        </button>
-        <button className="btn-outline">New estimate</button>
-        <button className="btn-outline">New order</button>
+      <button className="btn-success" onClick={() => onNavigate && onNavigate("newInvoice")}>{t("clients.edit.newInvoice")}</button>
+        <button className="btn-outline">{t("clients.edit.newEstimate")}</button>
+        <button className="btn-outline">{t("clients.edit.newOrder")}</button>
         <div className="search-box">
-          <input type="text" placeholder="Search" />
+          <input type="text" placeholder={t("common.search")} />
         </div>
       </div>
 
@@ -155,7 +153,7 @@ function EditClientForm({ clientId, onNavigate }) {
         <div className="top-grid">
           {/* ===== General ===== */}
           <div className="section-block">
-            <h3 className="section-title">General</h3>
+          <h3 className="section-title">{t("clients.form.general")}</h3>
 
             <div className="radio-group">
               <label className="radio-option">
@@ -164,24 +162,20 @@ function EditClientForm({ clientId, onNavigate }) {
                   name="clientType"
                   checked={formData.clientType === "company"}
                   onChange={() => updateField("clientType", "company")}
-                />
-                Company
-              </label>
+                  />{t("clients.form.company")}</label>
               <label className="radio-option">
                 <input
                   type="radio"
                   name="clientType"
                   checked={formData.clientType === "person"}
                   onChange={() => updateField("clientType", "person")}
-                />
-                Person
-              </label>
+                  />{t("clients.form.person")}</label>
             </div>
 
             {formData.clientType === "company" ? (
               <>
                 <div className="field">
-                  <label>Company name</label>
+                <label>{t("clients.form.companyName")}</label>
                   <input
                     type="text"
                     value={formData.company}
@@ -190,7 +184,7 @@ function EditClientForm({ clientId, onNavigate }) {
                 </div>
                 <div className="field-row">
                   <div className="field">
-                    <label>Company reg. no.</label>
+                  <label>{t("clients.form.companyRegNo")}</label>
                     <input
                       type="text"
                       value={formData.companyRegNo}
@@ -198,7 +192,7 @@ function EditClientForm({ clientId, onNavigate }) {
                     />
                   </div>
                   <div className="field">
-                    <label>VAT no.</label>
+                  <label>{t("clients.form.vatNo")}</label>
                     <input
                       type="text"
                       value={formData.vatNo}
@@ -211,7 +205,7 @@ function EditClientForm({ clientId, onNavigate }) {
               <>
                 <div className="field-row">
                   <div className="field">
-                    <label>First name</label>
+                  <label>{t("clients.form.firstName")}</label>
                     <input
                       type="text"
                       value={formData.firstName}
@@ -219,7 +213,7 @@ function EditClientForm({ clientId, onNavigate }) {
                     />
                   </div>
                   <div className="field">
-                    <label>Last name</label>
+                  <label>{t("clients.form.lastName")}</label>
                     <input
                       type="text"
                       value={formData.lastName}
@@ -228,7 +222,7 @@ function EditClientForm({ clientId, onNavigate }) {
                   </div>
                 </div>
                 <div className="field">
-                  <label>Personal id no.</label>
+                <label>{t("clients.form.personalIdNo")}</label>
                   <input
                     type="text"
                     value={formData.personalIdNo}
@@ -239,7 +233,7 @@ function EditClientForm({ clientId, onNavigate }) {
             )}
 
             <div className="field">
-              <label>Email</label>
+            <label>{t("clients.form.email")}</label>
               <input
                 type="email"
                 value={formData.email}
@@ -248,20 +242,19 @@ function EditClientForm({ clientId, onNavigate }) {
             </div>
 
             <div className="field">
-              <label>
-                Send invoices by <span className="tooltip-icon">?</span>
+            <label>{t("clients.form.sendInvoicesBy")} <span className="tooltip-icon">?</span>
               </label>
               <div className="radio-group">
-                {DELIVERY_METHODS.map(([value, label]) => (
+                {DELIVERY_METHODS.map(([value, labelKey]) => (
                   <label className="radio-option" key={value}>
                     <input
                       type="radio"
                       name="sendBy"
                       checked={formData.settings.invoiceDeliveryMethod === value}
                       onChange={() => updateNestedField("settings", "invoiceDeliveryMethod", value)}
-                    />
-                    {label}
-                  </label>
+                      />
+                      {t(labelKey)}
+                    </label>
                 ))}
               </div>
             </div>
@@ -271,8 +264,7 @@ function EditClientForm({ clientId, onNavigate }) {
                 type="checkbox"
                 checked={formData.settings.emailAttachPdf}
                 onChange={(e) => updateNestedField("settings", "emailAttachPdf", e.target.checked)}
-              />
-              Always attach a PDF copy in emails <span className="tooltip-icon">?</span>
+                />{t("clients.form.attachPdf")} <span className="tooltip-icon">?</span>
             </label>
           </div>
 
@@ -283,20 +275,16 @@ function EditClientForm({ clientId, onNavigate }) {
                 type="button"
                 className={`address-tab ${addressTab === "billing" ? "active" : ""}`}
                 onClick={() => setAddressTab("billing")}
-              >
-                Billing address
-              </button>
-              <button
-                type="button"
-                className={`address-tab ${addressTab === "delivery" ? "active" : ""}`}
-                onClick={() => setAddressTab("delivery")}
-              >
-                Delivery address
-              </button>
+                >{t("clients.form.billingAddress")}</button>
+                <button
+                  type="button"
+                  className={`address-tab ${addressTab === "delivery" ? "active" : ""}`}
+                  onClick={() => setAddressTab("delivery")}
+                >{t("clients.form.deliveryAddress")}</button>
             </div>
 
             <div className="field">
-              <label>C/O</label>
+            <label>{t("clients.form.careOf")}</label>
               <input
                 type="text"
                 value={formData[activeAddressKey].careOf}
@@ -304,7 +292,7 @@ function EditClientForm({ clientId, onNavigate }) {
               />
             </div>
             <div className="field">
-              <label>Address</label>
+            <label>{t("clients.form.address")}</label>
               <input
                 type="text"
                 value={formData[activeAddressKey].streetAddress}
@@ -313,7 +301,7 @@ function EditClientForm({ clientId, onNavigate }) {
             </div>
             <div className="field-row">
               <div className="field">
-                <label>Zip code</label>
+              <label>{t("clients.form.zipCode")}</label>
                 <input
                   type="text"
                   value={formData[activeAddressKey].zipCode}
@@ -321,7 +309,7 @@ function EditClientForm({ clientId, onNavigate }) {
                 />
               </div>
               <div className="field">
-                <label>City</label>
+              <label>{t("clients.form.city")}</label>
                 <input
                   type="text"
                   value={formData[activeAddressKey].city}
@@ -330,7 +318,7 @@ function EditClientForm({ clientId, onNavigate }) {
               </div>
             </div>
             <div className="field">
-              <label>Country</label>
+            <label>{t("clients.form.country")}</label>
               <select
                 value={formData[activeAddressKey].country}
                 onChange={(e) => updateNestedField(activeAddressKey, "country", e.target.value)}
@@ -350,10 +338,10 @@ function EditClientForm({ clientId, onNavigate }) {
             <div className="middle-grid">
               {/* ===== Contact information ===== */}
               <div className="section-block">
-                <h3 className="section-title">Contact information</h3>
+              <h3 className="section-title">{t("clients.form.contactInformation")}</h3>
 
                 <div className="field">
-                  <label>Website</label>
+                <label>{t("clients.form.website")}</label>
                   <input
                     type="text"
                     value={formData.website}
@@ -362,7 +350,7 @@ function EditClientForm({ clientId, onNavigate }) {
                 </div>
                 <div className="field-row">
                   <div className="field">
-                    <label>Phone (mobile)</label>
+                  <label>{t("clients.form.phoneMobile")}</label>
                     <input
                       type="tel"
                       value={formData.phoneMobile}
@@ -370,7 +358,7 @@ function EditClientForm({ clientId, onNavigate }) {
                     />
                   </div>
                   <div className="field">
-                    <label>Phone (home)</label>
+                  <label>{t("clients.form.phoneHome")}</label>
                     <input
                       type="tel"
                       value={formData.phoneHome}
@@ -379,7 +367,7 @@ function EditClientForm({ clientId, onNavigate }) {
                   </div>
                 </div>
                 <div className="field">
-                  <label>Fax</label>
+                <label>{t("clients.form.fax")}</label>
                   <input
                     type="text"
                     value={formData.fax}
@@ -390,33 +378,33 @@ function EditClientForm({ clientId, onNavigate }) {
 
               {/* ===== New invoice settings ===== */}
               <div className="section-block">
-                <h3 className="section-title">New invoice settings</h3>
+              <h3 className="section-title">{t("clients.form.newInvoiceSettings")}</h3>
 
                 <div className="setting-row">
-                  <span className="setting-label">Payment terms</span>
+                <span className="setting-label">{t("clients.form.paymentTerms")}</span>
                   <div className="setting-input-wrap">
                     <input
                       type="number"
                       value={formData.invoiceSettings.paymentTermsDays}
                       onChange={(e) => updateNestedField("invoiceSettings", "paymentTermsDays", e.target.value)}
                     />
-                    <span className="unit">days</span>
+                    <span className="unit">{t("clients.form.days")}</span>
                   </div>
                 </div>
                 <div className="setting-row">
-                  <span className="setting-label">Language</span>
+                <span className="setting-label">{t("clients.form.language")}</span>
                   <div className="setting-input-wrap">
                     <select
                       value={formData.invoiceSettings.invoiceLanguage}
                       onChange={(e) => updateNestedField("invoiceSettings", "invoiceLanguage", e.target.value)}
                     >
-                      <option>Swedish</option>
-                      <option>English</option>
+                    <option value="Swedish">{t("clients.form.swedish")}</option>
+                    <option value="English">{t("clients.form.english")}</option>
                     </select>
                   </div>
                 </div>
                 <div className="setting-row">
-                  <span className="setting-label">Currency</span>
+                <span className="setting-label">{t("clients.form.currency")}</span>
                   <div className="setting-input-wrap">
                     <select
                       value={formData.invoiceSettings.currency}
@@ -430,7 +418,7 @@ function EditClientForm({ clientId, onNavigate }) {
                   </div>
                 </div>
                 <div className="setting-row">
-                  <span className="setting-label">VAT for new rows</span>
+                <span className="setting-label">{t("clients.form.vatForNewRows")}</span>
                   <div className="setting-input-wrap">
                     <input
                       type="number"
@@ -441,7 +429,7 @@ function EditClientForm({ clientId, onNavigate }) {
                   </div>
                 </div>
                 <div className="setting-row">
-                  <span className="setting-label">Discount</span>
+                <span className="setting-label">{t("clients.form.discount")}</span>
                   <div className="setting-input-wrap">
                     <input
                       type="number"
@@ -459,10 +447,9 @@ function EditClientForm({ clientId, onNavigate }) {
             <div className="bottom-grid">
               {/* ===== Client information ===== */}
               <div className="section-block">
-                <h3 className="section-title">Client information</h3>
+              <h3 className="section-title">{t("clients.form.clientInformation")}</h3>
                 <div className="field">
-                  <label>
-                    Number <span className="tooltip-icon">?</span>
+                  <label>{t("clients.form.number")} <span className="tooltip-icon">?</span>
                   </label>
                   <input
                     type="text"
@@ -474,10 +461,10 @@ function EditClientForm({ clientId, onNavigate }) {
 
               {/* ===== ROT deduction ===== */}
               <div className="section-block">
-                <h3 className="section-title">Extra field for ROT deduction</h3>
+              <h3 className="section-title">{t("clients.form.rotTitle")}</h3>
                 <div className="field-row">
                   <div className="field">
-                    <label>Apartment designation</label>
+                  <label>{t("clients.form.apartmentDesignation")}</label>
                     <input
                       type="text"
                       value={formData.rotInfo.apartmentDesignation}
@@ -485,7 +472,7 @@ function EditClientForm({ clientId, onNavigate }) {
                     />
                   </div>
                   <div className="field">
-                    <label>Property designation</label>
+                  <label>{t("clients.form.propertyDesignation")}</label>
                     <input
                       type="text"
                       value={formData.rotInfo.propertyDesignation}
@@ -494,7 +481,7 @@ function EditClientForm({ clientId, onNavigate }) {
                   </div>
                 </div>
                 <div className="field">
-                  <label>Assoc. corp ID no.</label>
+                <label>{t("clients.form.assocCorpIdNo")}</label>
                   <input
                     type="text"
                     value={formData.rotInfo.assocCorpIdNo}
@@ -510,17 +497,15 @@ function EditClientForm({ clientId, onNavigate }) {
 
         <div className="detailed-settings-toggle">
           <button type="button" className="toggle-link" onClick={() => setShowDetails(!showDetails)}>
-            {showDetails ? "Hide detailed settings" : "Show detailed settings"}
+          {showDetails ? t("clients.form.hideDetails") : t("clients.form.showDetails")}
           </button>
         </div>
 
         <div className="form-actions">
           <button className="btn-success" onClick={handleSave} disabled={saving}>
-            {saving ? "Saving..." : "Save client"}
+          {saving ? t("clients.edit.saving") : t("clients.edit.saveClient")}
           </button>
-          <button className="btn-outline" onClick={handleCancel} disabled={saving}>
-            Cancel
-          </button>
+          <button className="btn-outline" onClick={handleCancel} disabled={saving}>{t("common.cancel")}</button>
         </div>
       </div>
     </div>

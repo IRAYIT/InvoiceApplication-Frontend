@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import TodoService from "../../services/TodoService";
 import ProductService from "../../services/ProductsService";
 import "./ClientTodo.css";
@@ -12,6 +13,7 @@ const initialTodoFormState = {
 };
 
 function ClientTodos({ clientId }) {
+  const { t } = useTranslation();
   const [todos, setTodos] = useState([]);
   const [products, setProducts] = useState([]);
   const [todoSearch, setTodoSearch] = useState("");
@@ -96,7 +98,7 @@ const handleSaveEdit = async (todoId) => {
     setEditingTodoId(null);
   } catch (err) {
     console.error("Error updating todo:", err);
-    alert(err?.response?.data?.message || "Failed to update todo.");
+    alert(err?.response?.data?.message || t("clients.todo.errors.updateFailed"));
   } finally {
     setTodoLoading(false);
   }
@@ -109,7 +111,7 @@ const handleSaveEdit = async (todoId) => {
 
   const handleCreateTodo = async () => {
     if (!todoForm.description.trim()) {
-      setTodoError("Description is required.");
+      setTodoError(t("clients.todo.errors.descriptionRequired"));
       return;
     }
 
@@ -128,7 +130,7 @@ const handleSaveEdit = async (todoId) => {
       setTodoForm(initialTodoFormState);
     } catch (err) {
       console.error("Error saving todo:", err);
-      setTodoError(err?.response?.data?.message || "Failed to create todo.");
+      setTodoError(err?.response?.data?.message || t("clients.todo.errors.createFailed"));
     } finally {
       setTodoLoading(false);
     }
@@ -178,14 +180,12 @@ const handleSaveEdit = async (todoId) => {
             setShowTodoForm((prev) => !prev);
             setTodoError(null);
           }}
-        >
-          New Todo-item
-        </button>
+        >{t("clients.todo.newTodo")}</button>
 
         <div className="cd-notes-search">
           <input
             type="text"
-            placeholder="Search"
+            placeholder={t("common.search")}
             value={todoSearch}
             onChange={(e) => setTodoSearch(e.target.value)}
           />
@@ -198,7 +198,7 @@ const handleSaveEdit = async (todoId) => {
           {todoError && <p className="cd-note-error">{todoError}</p>}
 
           <div className="cd-form-row">
-            <label className="cd-label">Beskrivning</label>
+            <label className="cd-label">{t("clients.todo.description")}</label>
             <input
               type="text"
               name="description"
@@ -209,44 +209,44 @@ const handleSaveEdit = async (todoId) => {
           </div>
 
           <div className="cd-form-grid">
-            <div>
-              <label className="cd-label">Assigned to user</label>
+          <div>
+              <label className="cd-label">{t("clients.todo.assignedToUser")}</label>
               <select
                 name="assignedTo"
                 className="cd-select"
                 value={todoForm.assignedTo}
                 onChange={handleInputChange}
               >
-                <option value="Everybody">Everybody</option>
-                <option value="Admin">Admin</option>
+                <option value="Everybody">{t("clients.todo.assignee.Everybody")}</option>
+                <option value="Admin">{t("clients.todo.assignee.Admin")}</option>
               </select>
             </div>
 
             <div>
-              <label className="cd-label">Priority</label>
+              <label className="cd-label">{t("clients.todo.priority")}</label>
               <select
                 name="priority"
                 className="cd-select"
                 value={todoForm.priority}
                 onChange={handleInputChange}
               >
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
+                <option value="Low">{t("clients.todo.priorities.Low")}</option>
+                <option value="Medium">{t("clients.todo.priorities.Medium")}</option>
+                <option value="High">{t("clients.todo.priorities.High")}</option>
               </select>
             </div>
           </div>
 
           <div className="cd-form-grid cd-mt-sm">
           <div>
-                <label className="cd-label">Connect to product/service</label>
+                <label className="cd-label">{t("clients.todo.connectProduct")}</label>
                 <select
                     name="productService"
                     className="cd-select"
                     value={todoForm.productService}
                     onChange={handleInputChange}
                 >
-                    <option value="">- None -</option>
+                    <option value="">{t("clients.todo.none")}</option>
                     {products.map((prod) => (
                     <option key={prod.id} value={prod.name}>
                         {formatProductOption(prod)}
@@ -255,8 +255,8 @@ const handleSaveEdit = async (todoId) => {
                 </select>
                 </div>
 
-            <div>
-              <label className="cd-label">Deadline</label>
+                <div>
+                <label className="cd-label">{t("clients.todo.deadline")}</label>
               <input
                 type="date"
                 name="deadline"
@@ -274,7 +274,7 @@ const handleSaveEdit = async (todoId) => {
               onClick={handleCreateTodo}
               disabled={todoLoading}
             >
-              {todoLoading ? "Creating..." : "Create Todo"}
+              {todoLoading ? t("clients.todo.creating") : t("clients.todo.createTodo")}
             </button>
             <button
               type="button"
@@ -283,9 +283,7 @@ const handleSaveEdit = async (todoId) => {
                 setShowTodoForm(false);
                 setTodoForm(initialTodoFormState);
               }}
-            >
-              Cancel
-            </button>
+            >{t("common.cancel")}</button>
           </div>
         </div>
       )}
@@ -295,11 +293,11 @@ const handleSaveEdit = async (todoId) => {
         <table className="cd-invoice-table cd-todo-table">
           <thead>
             <tr>
-              <th style={{ width: "60px" }}>DONE</th>
-              <th>DESCRIPTION</th>
-              <th>ASSIGNED TO</th>
-              <th>HOURS</th>
-              <th>UNBILLED</th>
+            <th style={{ width: "60px" }}>{t("clients.todo.table.done")}</th>
+              <th>{t("clients.todo.table.description")}</th>
+              <th>{t("clients.todo.table.assignedTo")}</th>
+              <th>{t("clients.todo.table.hours")}</th>
+              <th>{t("clients.todo.table.unbilled")}</th>
               <th style={{ width: "40px" }}></th>
             </tr>
           </thead>
@@ -311,8 +309,8 @@ const handleSaveEdit = async (todoId) => {
                     <tr className="cd-todo-edit-row">
                       <td colSpan="6">
                         <div className="cd-todo-edit-panel">
-                          <div className="cd-form-row">
-                            <label className="cd-label">Beskrivning</label>
+                        <div className="cd-form-row">
+                        <label className="cd-label">{t("clients.todo.description")}</label>
                             <input
                               type="text"
                               name="description"
@@ -323,44 +321,44 @@ const handleSaveEdit = async (todoId) => {
                           </div>
 
                           <div className="cd-form-grid">
-                            <div>
-                              <label className="cd-label">Assigned to user</label>
+                          <div>
+                          <label className="cd-label">{t("clients.todo.assignedToUser")}</label>
                               <select
                                 name="assignedTo"
                                 className="cd-select"
                                 value={editForm.assignedTo}
                                 onChange={handleEditInputChange}
                               >
-                                <option value="Everybody">Everybody</option>
-                                <option value="Admin">Admin</option>
+                                <option value="Everybody">{t("clients.todo.assignee.Everybody")}</option>
+                                <option value="Admin">{t("clients.todo.assignee.Admin")}</option>
                               </select>
                             </div>
 
                             <div>
-                              <label className="cd-label">Priority</label>
+                              <label className="cd-label">{t("clients.todo.priority")}</label>
                               <select
                                 name="priority"
                                 className="cd-select"
                                 value={editForm.priority}
                                 onChange={handleEditInputChange}
                               >
-                                <option value="Low">Low</option>
-                                <option value="Medium">Medium</option>
-                                <option value="High">High</option>
+                                <option value="Low">{t("clients.todo.priorities.Low")}</option>
+                                <option value="Medium">{t("clients.todo.priorities.Medium")}</option>
+                                <option value="High">{t("clients.todo.priorities.High")}</option>
                               </select>
                             </div>
                           </div>
 
                           <div className="cd-form-grid cd-mt-sm">
-                            <div>
-                              <label className="cd-label">Connect to product/service</label>
+                          <div>
+                          <label className="cd-label">{t("clients.todo.connectProduct")}</label>
                               <select
                                 name="productService"
                                 className="cd-select"
                                 value={editForm.productService}
                                 onChange={handleEditInputChange}
                               >
-                                <option value="">- None -</option>
+                                <option value="">{t("clients.todo.none")}</option>
                                 {products.map((prod) => (
                                   <option key={prod.id} value={prod.name}>
                                     {formatProductOption(prod)}
@@ -370,7 +368,7 @@ const handleSaveEdit = async (todoId) => {
                             </div>
 
                             <div>
-                              <label className="cd-label">Deadline</label>
+                              <label className="cd-label">{t("clients.todo.deadline")}</label>
                               <input
                                 type="date"
                                 name="deadline"
@@ -387,16 +385,12 @@ const handleSaveEdit = async (todoId) => {
                               className="btn-accent"
                               onClick={() => handleSaveEdit(todo.id)}
                               disabled={todoLoading}
-                            >
-                              Save changes
-                            </button>
+                            >{t("common.saveChanges")}</button>
                             <button
                               type="button"
                               className="btn-outline"
                               onClick={handleCancelEdit}
-                            >
-                              Cancel
-                            </button>
+                            >{t("common.cancel")}</button>
                           </div>
                         </div>
                       </td>
@@ -417,7 +411,7 @@ const handleSaveEdit = async (todoId) => {
                         {todo.description}
                       </td>
                       <td className="cd-muted-text">
-                        {todo.assignedTo || "Everybody"}
+                        {t(`clients.todo.assignee.${todo.assignedTo || "Everybody"}`, { defaultValue: todo.assignedTo || "Everybody" })}
                       </td>
                       <td>{(Number(todo.hours) || 0).toFixed(1)} h</td>
                       <td>{(Number(todo.unbilled) || 0).toFixed(1)} h</td>
@@ -425,7 +419,7 @@ const handleSaveEdit = async (todoId) => {
                         <button
                           type="button"
                           className="cd-circle-delete-btn"
-                          title="Delete todo"
+                          title={t("clients.todo.deleteTodo")}
                           onClick={() => handleDelete(todo.id)}
                         >
                           ⊖
@@ -437,9 +431,7 @@ const handleSaveEdit = async (todoId) => {
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="cd-empty-row">
-                  No Todos to show
-                </td>
+                <td colSpan="6" className="cd-empty-row">{t("clients.todo.empty")}</td>
               </tr>
             )}
           </tbody>

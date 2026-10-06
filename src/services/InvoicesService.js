@@ -54,6 +54,27 @@ const InvoiceService = {
     });
   },
 
+  // Send invoice email with generated PDF and optional additional attachment
+  sendPaidInvoiceEmail(
+    id,
+    recipientEmail,
+    personalMessage = "",
+    attachment = null
+  ) {
+    const formData = new FormData();
+
+    formData.append("recipientEmail", recipientEmail);
+    formData.append("personalMessage", personalMessage);
+
+    if (attachment) {
+      formData.append("attachment", attachment);
+    }
+
+    return axios.post(
+      `${API_BASE_URL}/${id}/send-email`,
+      formData
+    );
+  },
   // Send invoice by postal mail
   sendInvoiceByPost(id, payload) {
     return axios.post(`${API_BASE_URL}/${id}/send/post`, payload);

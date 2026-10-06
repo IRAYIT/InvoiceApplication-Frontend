@@ -1091,3 +1091,385 @@
     flex-direction: column;
   }
 }
+/* =========================================================
+   CONTACTS - COMPACT STYLE
+   ========================================================= */
+
+   .cd-contacts-wrapper {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .cd-contact-items {
+    width: 100%;
+  }
+  
+  .cd-contact-item {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  
+    width: 100%;
+    min-height: 105px;
+  
+    padding: 6px 10px 12px 10px;
+    box-sizing: border-box;
+  }
+  
+  .cd-contact-details {
+    min-width: 0;
+    padding-right: 120px;
+  }
+  
+  .cd-contact-name {
+    margin-bottom: 6px;
+  
+    color: #263f4c;
+    font-size: 19px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  
+  .cd-contact-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+  
+    gap: 20px;
+    margin-bottom: 6px;
+  }
+  
+  .cd-contact-info {
+    display: inline-flex;
+    align-items: center;
+  
+    gap: 6px;
+  
+    color: #00a9d6;
+  
+    font-size: 15px;
+    line-height: 1.2;
+  
+    white-space: nowrap;
+  }
+  
+  .cd-contact-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  
+    color: #00a9d6;
+  }
+  
+  .cd-contact-icon svg {
+    width: 17px;
+    height: 17px;
+  }
+  
+  /* Contact Actions */
+
+.cd-contact-actions {
+  position: absolute;
+  top: 20px;
+  right: 8px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Edit */
+
+.cd-contact-edit {
+  height: 34px;
+  padding: 0 14px;
+
+  border: 1px solid #2f70d0;
+  border-radius: 5px;
+
+  background: #fff;
+  color: #2f65bd;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.cd-contact-edit:hover {
+  background: #f4f8ff;
+}
+
+/* Delete */
+
+.cd-contact-delete {
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 2px solid #9eb7c0;
+  border-radius: 50%;
+
+  background: #fff;
+  color: #7896a1;
+
+  font-size: 19px;
+  font-weight: 300;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+.cd-contact-delete:hover {
+  border-color: #d85b4d;
+  color: #d85b4d;
+}
+  
+  /* Divider */
+  
+  .cd-contact-divider {
+    width: 100%;
+    height: 1px;
+  
+    margin: 0 0 18px 0;
+  
+    background: #e8edef;
+  }
+  
+  /* New contact button */
+  
+  .cd-new-contact-btn {
+    height: 52px;
+    min-width: 165px;
+  
+    padding: 0 20px;
+  
+    border: 1px solid #c6d7dd;
+    border-radius: 5px;
+  
+    background: #fff;
+  
+    color: #1f526a;
+  
+    font-size: 18px;
+    font-weight: 600;
+  
+    cursor: pointer;
+  
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.10);
+  }
+  
+  .cd-new-contact-btn:hover {
+    background: #f5f9fa;
+    border-color: #9fbcc7;
+  }
+  
+  /* Mobile */
+  
+  @media (max-width: 700px) {
+  
+    .cd-contact-item {
+      min-height: auto;
+      padding: 6px 5px 12px;
+    }
+  
+    .cd-contact-name {
+      font-size: 18px;
+    }
+  
+    .cd-contact-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 5px;
+    }
+  
+    .cd-contact-info {
+      font-size: 14px;
+      white-space: normal;
+      word-break: break-word;
+    }
+  
+    .cd-contact-delete {
+      top: 15px;
+      right: 3px;
+    }
+  
+    .cd-new-contact-btn {
+      height: 48px;
+      min-width: 155px;
+      font-size: 17px;
+    }
+  }
+  /* =========================================================
+   DELETE CONFIRMATION MODAL
+   ========================================================= */
+
+.cd-delete-overlay {
+  position: fixed;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(20, 35, 45, 0.45);
+
+  z-index: 9999;
+
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.cd-delete-modal {
+  width: 100%;
+  max-width: 420px;
+
+  padding: 28px;
+
+  background: #fff;
+
+  border-radius: 8px;
+
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.18);
+
+  text-align: center;
+
+  box-sizing: border-box;
+}
+
+/* Delete icon */
+
+.cd-delete-icon {
+  width: 48px;
+  height: 48px;
+
+  margin: 0 auto 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 2px solid #e36a5d;
+  border-radius: 50%;
+
+  color: #d9534f;
+
+  font-size: 30px;
+  font-weight: 300;
+
+  line-height: 1;
+}
+
+/* Title */
+
+.cd-delete-modal h3 {
+  margin: 0 0 10px;
+
+  color: #263f4c;
+
+  font-size: 21px;
+  font-weight: 600;
+}
+
+/* Message */
+
+.cd-delete-modal p {
+  margin: 0 auto 24px;
+
+  max-width: 340px;
+
+  color: #687d87;
+
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* Buttons */
+
+.cd-delete-actions {
+  display: flex;
+  justify-content: center;
+
+  gap: 10px;
+}
+
+/* Cancel */
+
+.cd-delete-cancel {
+  min-width: 100px;
+  height: 40px;
+
+  padding: 0 18px;
+
+  border: 1px solid #c6d7dd;
+  border-radius: 5px;
+
+  background: #fff;
+
+  color: #315365;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.cd-delete-cancel:hover {
+  background: #f5f8f9;
+}
+
+/* Delete */
+
+.cd-delete-confirm {
+  min-width: 100px;
+  height: 40px;
+
+  padding: 0 18px;
+
+  border: 1px solid #d9534f;
+  border-radius: 5px;
+
+  background: #d9534f;
+
+  color: #fff;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.cd-delete-confirm:hover {
+  background: #c94440;
+}
+
+.cd-delete-confirm:disabled,
+.cd-delete-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Mobile */
+
+@media (max-width: 500px) {
+
+  .cd-delete-modal {
+    padding: 22px;
+  }
+
+  .cd-delete-actions {
+    flex-direction: column-reverse;
+  }
+
+  .cd-delete-cancel,
+  .cd-delete-confirm {
+    width: 100%;
+  }
+}

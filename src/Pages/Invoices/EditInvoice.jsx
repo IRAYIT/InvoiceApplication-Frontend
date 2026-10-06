@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import InvoiceService from "../../services/InvoicesService";
 import "./EditInvoice.css";
 
@@ -70,7 +71,8 @@ const IconTrash = (props) => (
 );
 
 /* Pill dropdown for Language / Currency selectors */
-function PillDropdown({ icon, label, value, options, onChange }) {
+function PillDropdown({ icon, label, value, options, onChange, renderOption }) {
+  const display = renderOption || ((v) => v);
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
 
@@ -88,7 +90,7 @@ function PillDropdown({ icon, label, value, options, onChange }) {
       <button type="button" className="ei-pill" onClick={() => setOpen((p) => !p)}>
         {icon}
         <span>{label}:</span>
-        <strong className="ei-pill-value">{value}</strong>
+        <strong className="ei-pill-value">{display(value)}</strong>
         <IconChevronDown className={`ei-pill-chevron${open ? " is-open" : ""}`} />
       </button>
 
@@ -103,8 +105,8 @@ function PillDropdown({ icon, label, value, options, onChange }) {
                 onChange(opt);
                 setOpen(false);
               }}
-            >
-              {opt}
+              >
+              {display(opt)}
               {opt === value && <span className="ei-pill-check">✓</span>}
             </button>
           ))}
@@ -116,8 +118,9 @@ function PillDropdown({ icon, label, value, options, onChange }) {
 
 /* Confirmation modal shown when the user clicks "Cancel" on the edit
    form — gives them a chance to back out instead of losing changes. */
-function ConfirmExitModal({ onCancel, onConfirm }) {
-  useEffect(() => {
+   function ConfirmExitModal({ onCancel, onConfirm }) {
+    const { t } = useTranslation();
+    useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") onCancel();
     };
@@ -131,16 +134,16 @@ function ConfirmExitModal({ onCancel, onConfirm }) {
         className="ei-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Exit without saving changes?"
+        aria-label={t("invoiceForm.exitConfirm.title")}
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <p className="ei-modal-message">Exit without saving changes?</p>
+        <p className="ei-modal-message">{t("invoiceForm.exitConfirm.title")}</p>
         <div className="ei-modal-actions">
-          <button type="button" className="ei-modal-btn ei-modal-btn-cancel" onClick={onCancel}>
-            Cancel
+        <button type="button" className="ei-modal-btn ei-modal-btn-cancel" onClick={onCancel}>
+            {t("common.cancel")}
           </button>
           <button type="button" className="ei-modal-btn ei-modal-btn-confirm" onClick={onConfirm}>
-            Yes, continue
+            {t("invoiceForm.exitConfirm.yesContinue")}
           </button>
         </div>
       </div>
@@ -155,34 +158,34 @@ function ConfirmExitModal({ onCancel, onConfirm }) {
 const MORE_OPTIONS = [
   {
     key: "extraFieldsLong",
-    label: "Add extra fields (long) from the customer",
+    labelKey: "invoiceForm.moreOptionsLabels.extraFieldsLong",
     defaultText: "",
     placeholder: "Extra information from the customer",
   },
   {
     key: "buyerPersonalId",
-    label: "Add the buyer personal id no.",
+    labelKey: "invoiceForm.moreOptionsLabels.buyerPersonalId",
     defaultText: "Buyer's org. no.: ",
   },
   {
     key: "buyerVat",
-    label: "Add the buyers VAT number",
+    labelKey: "invoiceForm.moreOptionsLabels.buyerVat",
     defaultText: "Buyer's VAT registration no.: ",
   },
   {
     key: "reverseCharge",
-    label: "Add reverse charge",
+    labelKey: "invoiceForm.moreOptionsLabels.reverseCharge",
     defaultText: "Buyer's VAT registration no.: \nReverse charge",
   },
   {
     key: "threePartyTrade",
-    label: "Add three-party trade",
+    labelKey: "invoiceForm.moreOptionsLabels.threePartyTrade",
     defaultText:
       "Three-party trade within the EU.\nSeller's VAT registration no.: .\nBuyer's VAT registration no.: .\nReverse charge liability / Reverse charge.",
   },
   {
     key: "rotExtraFields",
-    label: "Add the customer's extra field for ROT deduction",
+    labelKey: "invoiceForm.moreOptionsLabels.rotExtraFields",
     isGroup: true,
     fields: [
       { key: "brfOrgNo", defaultText: "Housing association org. no.: " },
@@ -192,7 +195,7 @@ const MORE_OPTIONS = [
   },
   {
     key: "taxDeduction",
-    label: "Add tax deduction for ROT / RUT / Green tech",
+    labelKey: "invoiceForm.moreOptionsLabels.taxDeduction",
     isTaxDeductionPanel: true,
   },
 ];
@@ -202,12 +205,13 @@ const TAX_DEDUCTION_PERCENTS = [30, 50, 75];
 const MAX_FIELD_LENGTH = 255;
 
 function ExtraFieldBox({ value, onChange, onRemove, placeholder, tall }) {
+  const { t } = useTranslation();
   return (
     <div className="ei-extra-field-box">
       <button
         type="button"
         className="ei-extra-field-remove"
-        aria-label="Remove this field"
+        aria-label={t("invoiceForm.removeField")}
         onClick={onRemove}
       >
         ×
@@ -284,6 +288,7 @@ const taxAmountOf = (row) => lineSubtotalOf(row) * (toNumber(row.taxPercent) / 1
  * - onEditClient () => void — called when the pencil icon next to Client is clicked
  */
 export default function EditInvoice({ invoiceId, onNavigate, onEditClient }) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -373,7 +378,7 @@ export default function EditInvoice({ invoiceId, onNavigate, onEditClient }) {
 
   useEffect(() => {
     if (!invoiceId) {
-      setError("No invoice was specified.");
+      setError(t("invoiceForm.noInvoiceSpecified"));
       setLoading(false);
       return;
     }
@@ -547,7 +552,7 @@ export default function EditInvoice({ invoiceId, onNavigate, onEditClient }) {
   if (loading) {
     return (
       <main className="ei-content">
-        <div className="ei-loading-state">Loading invoice…</div>
+        <div className="ei-loading-state">{t("invoiceForm.loadingInvoice")}</div>
       </main>
     );
   }
@@ -563,8 +568,8 @@ export default function EditInvoice({ invoiceId, onNavigate, onEditClient }) {
   return (
     <main className="ei-content">
       <div className="ei-page-title">
-        Edit invoice{invoiceNumber ? ` (#${invoiceNumber})` : ""}
-        {client?.name ? ` to ${client.name}` : ""}
+      {t("invoiceForm.editTitleWithClient")}{invoiceNumber ? ` (#${invoiceNumber})` : ""}
+      {client?.name ? ` ${t("invoiceForm.toClient", { name: client.name })}` : ""}
       </div>
 
       {error && <div className="ei-error-banner">{error}</div>}
@@ -573,14 +578,14 @@ export default function EditInvoice({ invoiceId, onNavigate, onEditClient }) {
       <div className="ei-card">
         <div className="ei-grid-row">
           <div className="ei-field ei-field-large">
-            <label>Client</label>
+          <label>{t("invoiceForm.client")}</label>
             <div className="ei-client-input">
               <IconCircleX className="ei-client-icon" />
-              <span className="ei-client-name">{client?.name || "No client selected"}</span>
+              <span className="ei-client-name">{client?.name || t("invoiceForm.noClientSelected")}</span>
               <button
                 type="button"
                 className="ei-client-edit"
-                aria-label="Edit client"
+                aria-label={t("invoiceForm.editClient")}
                 onClick={() => onEditClient && onEditClient()}
               >
                 <IconEdit />
@@ -590,17 +595,17 @@ export default function EditInvoice({ invoiceId, onNavigate, onEditClient }) {
 
           <div className="ei-field">
             <label>
-              Invoice no. <IconHelp className="ei-label-help" />
+            {t("invoiceForm.invoiceNo")} <IconHelp className="ei-label-help" />
             </label>
             <input value={invoiceNumber ?? ""} readOnly />
           </div>
 
           <div className="ei-field">
-            <label>Status</label>
+          <label>{t("invoiceForm.status")}</label>
             <select value={status} onChange={(e) => setStatus(e.target.value)}>
               {STATUS_OPTIONS.map((s) => (
                 <option key={s} value={s}>
-                  {s}
+                  {t(`invoiceForm.statusOptions.${s}`, { defaultValue: s })}
                 </option>
               ))}
             </select>
@@ -609,7 +614,7 @@ export default function EditInvoice({ invoiceId, onNavigate, onEditClient }) {
 
         <div className="ei-grid-row ei-five-cols">
           <div className="ei-field">
-            <label>Invoice date</label>
+          <label>{t("invoiceForm.invoiceDate")}</label>
             <div className="ei-icon-input">
               <IconCalendar className="ei-input-icon" />
               <input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} />
@@ -617,7 +622,7 @@ export default function EditInvoice({ invoiceId, onNavigate, onEditClient }) {
           </div>
 
           <div className="ei-field">
-            <label>Payment terms</label>
+          <label>{t("invoiceForm.paymentTerms")}</label>
             <input
               value={paymentTerms}
               onChange={(e) => setPaymentTerms(e.target.value)}
@@ -625,7 +630,7 @@ export default function EditInvoice({ invoiceId, onNavigate, onEditClient }) {
           </div>
 
           <div className="ei-field">
-            <label>Due date</label>
+          <label>{t("invoiceForm.dueDate")}</label>
             <div className="ei-icon-input">
               <IconCalendar className="ei-input-icon" />
               <input
@@ -640,27 +645,28 @@ export default function EditInvoice({ invoiceId, onNavigate, onEditClient }) {
           </div>
 
           <div className="ei-field">
-            <label>Your reference</label>
+          <label>{t("invoiceForm.yourReference")}</label>
             <input value={yourReference} onChange={(e) => setYourReference(e.target.value)} />
           </div>
 
           <div className="ei-field">
-            <label>Our reference</label>
+          <label>{t("invoiceForm.ourReference")}</label>
             <input value={ourReference} onChange={(e) => setOurReference(e.target.value)} />
           </div>
         </div>
 
         <div className="ei-options-row">
-          <PillDropdown
+        <PillDropdown
             icon={<IconGlobe className="ei-pill-icon" />}
-            label="Language"
+            label={t("invoiceForm.language")}
             value={language}
             options={LANGUAGES}
             onChange={setLanguage}
+            renderOption={(v) => t(`invoiceForm.languageOptions.${v}`, { defaultValue: v })}
           />
           <PillDropdown
             icon={<IconDollar className="ei-pill-icon" />}
-            label="Currency"
+            label={t("invoiceForm.currency")}
             value={currency}
             options={CURRENCIES}
             onChange={setCurrency}
@@ -672,16 +678,16 @@ export default function EditInvoice({ invoiceId, onNavigate, onEditClient }) {
       <div className="ei-table-card">
         <div className="ei-table-header">
           <div className="ei-col-drag" />
-          <div>PRODUCT / SERVICE</div>
-          <div>TEXT</div>
-          <div>QUANTITY</div>
-          <div>UNIT</div>
+          <div>{t("invoiceForm.table.product")}</div>
+          <div>{t("invoiceForm.table.text")}</div>
+          <div>{t("invoiceForm.table.quantity")}</div>
+          <div>{t("invoiceForm.table.unit")}</div>
           <div>
-            PRICE EXCL. <IconHelp className="ei-label-help" />
+            {t("invoiceForm.table.priceExcl")} <IconHelp className="ei-label-help" />
           </div>
-          <div>VAT %</div>
-          <div>DISCOUNT</div>
-          <div>TOTAL EXCL.</div>
+          <div>{t("invoiceForm.table.vatPercent")}</div>
+          <div>{t("invoiceForm.table.discount")}</div>
+          <div>{t("invoiceForm.table.totalExcl")}</div>
           <div className="ei-col-delete" />
         </div>
 
@@ -696,19 +702,19 @@ export default function EditInvoice({ invoiceId, onNavigate, onEditClient }) {
               {isTextRow ? (
                 <input
                   className="ei-text-row-input"
-                  placeholder="Extra text for this invoice line"
+                  placeholder={t("invoiceForm.placeholders.extraLineText")}
                   value={row.description}
                   onChange={(e) => updateRow(row.rowKey, { description: e.target.value })}
                 />
               ) : (
                 <>
                   <input
-                    placeholder="Choose a product"
+                    placeholder={t("invoiceForm.placeholders.chooseProduct")}
                     value={row.description}
                     onChange={(e) => updateRow(row.rowKey, { description: e.target.value })}
                   />
                   <input
-                    placeholder="Extra information"
+                    placeholder={t("invoiceForm.placeholders.extraInfo")}
                     value={row.text}
                     onChange={(e) => updateRow(row.rowKey, { text: e.target.value })}
                   />
@@ -747,7 +753,7 @@ export default function EditInvoice({ invoiceId, onNavigate, onEditClient }) {
               <button
                 type="button"
                 className="ei-row-delete"
-                aria-label="Remove row"
+                aria-label={t("invoiceForm.removeRow")}
                 onClick={() => removeRow(row.rowKey)}
               >
                 <IconCircleX />
@@ -770,7 +776,7 @@ export default function EditInvoice({ invoiceId, onNavigate, onEditClient }) {
             {selectedOptions.extraFieldsLong && (
               <ExtraFieldBox
                 value={optionTexts.extraFieldsLong}
-                placeholder="Extra information from the customer"
+                placeholder={t("invoiceForm.placeholders.extraInfoFromCustomer")} 
                 onChange={(v) => updateOptionText("extraFieldsLong", v)}
                 onRemove={() => toggleMoreOption("extraFieldsLong")}
               />
@@ -827,7 +833,7 @@ export default function EditInvoice({ invoiceId, onNavigate, onEditClient }) {
             {taxDeductionApplied && (
               <div className="ei-tax-deduction-panel ei-tax-deduction-applied">
                 <div>
-                  <span className="ei-tax-deduction-label">Preliminary tax deduction</span>
+                <span className="ei-tax-deduction-label">{t("invoiceForm.preliminaryTaxDeduction")}</span>
                   <span className="ei-tax-deduction-value">{taxDeductionPercent}%</span>
                 </div>
                 <button
@@ -835,7 +841,7 @@ export default function EditInvoice({ invoiceId, onNavigate, onEditClient }) {
                   className="ei-outline-btn ei-tax-deduction-remove"
                   onClick={handleRemoveTaxDeduction}
                 >
-                  <IconTrash /> Remove
+                  <IconTrash /> {t("invoiceForm.remove")}
                 </button>
               </div>
             )}
@@ -844,7 +850,7 @@ export default function EditInvoice({ invoiceId, onNavigate, onEditClient }) {
 
         {showTaxDeductionPanel && (
           <div className="ei-tax-deduction-panel">
-            <label className="ei-tax-deduction-label">Tax deduction</label>
+            <label className="ei-tax-deduction-label">{t("invoiceForm.taxDeduction")}</label>
             <div className="ei-tax-deduction-row">
               <select
                 className="ei-tax-deduction-select"
@@ -862,10 +868,10 @@ export default function EditInvoice({ invoiceId, onNavigate, onEditClient }) {
                 className="ei-outline-btn ei-tax-deduction-confirm"
                 onClick={handleConfirmTaxDeduction}
               >
-                Add preliminary tax deduction
+                {t("invoiceForm.addPreliminaryTaxDeduction")}
               </button>
               <button type="button" className="ei-outline-btn" onClick={handleCancelTaxDeduction}>
-                Cancel
+                {t("common.cancel")}
               </button>
             </div>
           </div>
@@ -874,10 +880,10 @@ export default function EditInvoice({ invoiceId, onNavigate, onEditClient }) {
         <div className="ei-bottom-section">
           <div className="ei-actions">
             <button type="button" className="ei-outline-btn" onClick={addProductRow}>
-              <IconPlus /> New product row
+            <IconPlus /> {t("invoiceForm.newProductRow")}
             </button>
             <button type="button" className="ei-outline-btn" onClick={addTextRow}>
-              <IconPlus /> New text row
+              <IconPlus /> {t("invoiceForm.newTextRow")}
             </button>
 
             <div className="ei-more-options">
@@ -886,7 +892,7 @@ export default function EditInvoice({ invoiceId, onNavigate, onEditClient }) {
                 className="ei-more-options-btn"
                 onClick={() => setShowMoreOptions((prev) => !prev)}
               >
-                More options (ROT/RUT etc) <IconChevronDown />
+                {t("invoiceForm.moreOptions")} <IconChevronDown />
               </button>
 
               {showMoreOptions && (
@@ -911,7 +917,7 @@ export default function EditInvoice({ invoiceId, onNavigate, onEditClient }) {
                           setShowMoreOptions(false);
                         }}
                       >
-                        {option.label}
+                        {t(option.labelKey)}
                         {isActive && <span className="ei-more-options-check">✓</span>}
                       </button>
                     );
@@ -925,15 +931,15 @@ export default function EditInvoice({ invoiceId, onNavigate, onEditClient }) {
 
           <div className="ei-summary">
             <div>
-              <span>Net</span>
+            <span>{t("invoiceForm.net")}</span>
               <strong>{subtotal.toFixed(2)}</strong>
             </div>
             <div>
-              <span>VAT</span>
+              <span>{t("invoiceForm.vat")}</span>
               <strong>{taxAmount.toFixed(2)}</strong>
             </div>
             <div>
-              <span>Total</span>
+              <span>{t("invoiceForm.total")}</span>
               <strong>{totalAmount.toFixed(2)}</strong>
             </div>
           </div>
@@ -941,24 +947,24 @@ export default function EditInvoice({ invoiceId, onNavigate, onEditClient }) {
       </div>
 
       <div className="ei-footer-actions">
-        <button type="button" className="ei-save-btn" onClick={handleSave} disabled={saving}>
-          {saving ? "Saving…" : "Save changes"}
+      <button type="button" className="ei-save-btn" onClick={handleSave} disabled={saving}>
+          {saving ? t("invoiceForm.saving") : t("invoiceForm.saveChanges")}
         </button>
         <button type="button" className="ei-cancel-btn" onClick={handleCancel} disabled={saving}>
-          Cancel
+          {t("common.cancel")}
         </button>
       </div>
 
       <footer className="ei-footer">
-        <span>♡ FAQ</span>
-        <span>❓ Help</span>
-        <span>✉ Email us</span>
-        <span>☎ Call us</span>
-        <span>🕒 Mon - Thu 09:00 - 12:00</span>
+        <span>♡ {t("footer.faq")}</span>
+        <span>❓ {t("footer.help")}</span>
+        <span>✉ {t("footer.emailUs")}</span>
+        <span>☎ {t("footer.callUs")}</span>
+        <span>🕒 {t("footer.hours")}</span>
       </footer>
 
       <button type="button" className="ei-help-btn">
-        ❓ Help
+        ❓ {t("footer.help")}
       </button>
 
       {showExitConfirm && (

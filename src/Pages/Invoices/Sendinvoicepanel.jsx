@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import InvoiceService from "../../services/InvoicesService";
 import "./SendInvoicePanel.css";
 
@@ -28,6 +29,7 @@ const IconCloud = (props) => (
  * backend endpoint. Only one section is expanded at a time.
  */
 export default function SendInvoicePanel({ invoice, onClose, onSent }) {
+  const { t } = useTranslation();
   const [activeSection, setActiveSection] = useState("email");
 
   // ── Send by e-mail ─────────────────────────────────────────
@@ -41,23 +43,47 @@ export default function SendInvoicePanel({ invoice, onClose, onSent }) {
   const [emailSentTo, setEmailSentTo] = useState(null);
 
   const handleSendEmail = async () => {
-    if (!email) {
-      setEmailError("Enter an email address.");
+    if (!email.trim()) {
+      setEmailError(t("sendPanel.errors.emailRequired"));
       return;
     }
+  
+    if (includeAttachment && !attachment) {
+      setEmailError(t("sendPanel.errors.attachmentRequired"));
+      return;
+    }
+  
     setEmailSending(true);
     setEmailError(null);
+  
     try {
-      const formData = new FormData();
-      formData.append("email", email);
-      if (includeMessage && message) formData.append("message", message);
-      if (includeAttachment && attachment) formData.append("attachment", attachment);
+      const personalMessage = includeMessage ? message : "";
+  
+      await InvoiceService.sendPaidInvoiceEmail(
+        invoice.id,
+        email.trim(),
+        personalMessage,
+        includeAttachment ? attachment : null
+      );
+  
+      const sentEmail = email.trim();
 
-      await InvoiceService.sendInvoiceByEmail(invoice.id, formData);
-      setEmailSentTo(email);
-      onSent && onSent({ method: "EMAIL", target: email });
+      onSent &&
+        onSent({
+          method: "EMAIL",
+          target: sentEmail,
+        });
+
+      onClose && onClose();
     } catch (err) {
-      setEmailError(err?.response?.data?.message || "Failed to send the invoice.");
+      console.error("Error sending invoice email:", err);
+  
+      setEmailError(
+        typeof err?.response?.data === "string"
+          ? err.response.data
+          : err?.response?.data?.message ||
+          t("sendPanel.errors.sendFailed")
+      );
     } finally {
       setEmailSending(false);
     }
@@ -71,7 +97,7 @@ export default function SendInvoicePanel({ invoice, onClose, onSent }) {
 
   const handleSendPost = async () => {
     if (!postAddress.trim()) {
-      setPostError("Enter a postal address.");
+      setPostError(t("sendPanel.errors.addressRequired"));
       return;
     }
     setPostSending(true);
@@ -81,7 +107,7 @@ export default function SendInvoicePanel({ invoice, onClose, onSent }) {
       setPostSent(true);
       onSent && onSent({ method: "POST", target: postAddress });
     } catch (err) {
-      setPostError(err?.response?.data?.message || "Failed to send by postal mail.");
+      setPostError(err?.response?.data?.message || t("sendPanel.errors.postFailed"));
     } finally {
       setPostSending(false);
     }
@@ -95,7 +121,7 @@ export default function SendInvoicePanel({ invoice, onClose, onSent }) {
 
   const handleSendEInvoice = async () => {
     if (!eInvoiceRef.trim()) {
-      setEInvoiceError("Enter the client's e-invoice reference.");
+      setEInvoiceError(t("sendPanel.errors.eInvoiceRefRequired"));
       return;
     }
     setEInvoiceSending(true);
@@ -105,7 +131,7 @@ export default function SendInvoicePanel({ invoice, onClose, onSent }) {
       setEInvoiceSent(true);
       onSent && onSent({ method: "E_INVOICE", target: eInvoiceRef });
     } catch (err) {
-      setEInvoiceError(err?.response?.data?.message || "Failed to send by e-invoice.");
+      setEInvoiceError(err?.response?.data?.message || t("sendPanel.errors.eInvoiceFailed"));
     } finally {
       setEInvoiceSending(false);
     }
@@ -117,30 +143,30 @@ export default function SendInvoicePanel({ invoice, onClose, onSent }) {
     <div className="send-panel">
       {emailSentTo && (
         <div className="send-banner send-banner-success">
-          The invoice was sent to: &lt;{emailSentTo}&gt;
+          {t("sendPanel.emailSentTo", { email: emailSentTo })}
         </div>
       )}
       {postSent && (
         <div className="send-banner send-banner-success">
-          The invoice was queued for postal delivery.
+          {t("sendPanel.postQueued")}
         </div>
       )}
       {eInvoiceSent && (
         <div className="send-banner send-banner-success">
-          The invoice was sent by e-invoice to: {eInvoiceRef}
+          {t("sendPanel.eInvoiceSentTo", { ref: eInvoiceRef })}
         </div>
       )}
 
       {/* ── Send by e-mail ── */}
       <section className={`send-section send-section-email ${activeSection === "email" ? "open" : "collapsed"}`}>
         <button type="button" className="send-section-toggle" onClick={() => toggle("email")}>
-          <IconAt /> Send by e-mail
+        <IconAt /> {t("sendPanel.sendByEmail")}
         </button>
 
         {activeSection === "email" && (
           <div className="send-section-body">
             <div className="send-section-col">
-              <label className="send-field-label">Email</label>
+            <label className="send-field-label">{t("sendPanel.email")}</label>
               <input
                 type="email"
                 className="send-text-input"
@@ -151,7 +177,7 @@ export default function SendInvoicePanel({ invoice, onClose, onSent }) {
 
               <label className="send-checkbox-row">
                 <input type="checkbox" checked={includeMessage} onChange={(e) => setIncludeMessage(e.target.checked)} />
-                Include a message
+                {t("sendPanel.includeMessage")}
               </label>
               {includeMessage && (
                 <textarea
@@ -159,7 +185,7 @@ export default function SendInvoicePanel({ invoice, onClose, onSent }) {
                   rows={4}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Write a short note to include with the invoice…"
+                  placeholder={t("sendPanel.messagePlaceholder")}
                 />
               )}
 
@@ -169,8 +195,8 @@ export default function SendInvoicePanel({ invoice, onClose, onSent }) {
                   checked={includeAttachment}
                   onChange={(e) => setIncludeAttachment(e.target.checked)}
                 />
-                Add attachment
-              </label>
+                {t("sendPanel.addAttachment")}
+                </label>
               {includeAttachment && (
                 <input
                   type="file"
@@ -183,30 +209,31 @@ export default function SendInvoicePanel({ invoice, onClose, onSent }) {
 
               <div className="send-actions">
                 <button className="btn btn-send-sm" onClick={handleSendEmail} disabled={emailSending}>
-                  {emailSending ? "Sending…" : "Send"}
+                {emailSending ? t("sendPanel.sending") : t("sendPanel.send")}
                 </button>
                 <button className="btn btn-cancel-sm" type="button" onClick={onClose}>
-                  Cancel
+                  {t("common.cancel")}
                 </button>
               </div>
             </div>
 
             <div className="send-section-col send-followup-col">
-              <h3>Follow-up after sending</h3>
+            <h3>{t("sendPanel.followUpTitle")}</h3>
               <p className="send-followup-line">
-                <strong>Auto Mode:</strong> <span className="send-off">OFF</span>{" "}
-                <a href="#" onClick={(e) => e.preventDefault()}>Read more</a>
+              <strong>{t("sendPanel.autoMode")}</strong> <span className="send-off">{t("sendPanel.off")}</span>{" "}
+              <a href="#" onClick={(e) => e.preventDefault()}>{t("sendPanel.readMore")}</a>
               </p>
               <p className="send-followup-desc">
-                Make your administrative work more efficient with the help of our invoicing service.
+              {t("sendPanel.autoModeDesc")}
               </p>
 
               <p className="send-followup-line">
-                <strong>SMS if unopened after three days:</strong> <span className="send-off">OFF</span>{" "}
+              <strong>{t("sendPanel.smsUnopened")}</strong> <span className="send-off">{t("sendPanel.off")}</span>{" "}
+              <a href="#" onClick={(e) => e.preventDefault()}>{t("sendPanel.readMore")}</a>                <strong>SMS if unopened after three days:</strong> <span className="send-off">OFF</span>{" "}
                 <a href="#" onClick={(e) => e.preventDefault()}>Read more</a>
               </p>
               <p className="send-followup-desc">
-                Gives you extra assurance that e-mail invoices and estimates are opened.
+              {t("sendPanel.smsUnopenedDesc")}
               </p>
             </div>
           </div>
@@ -216,12 +243,12 @@ export default function SendInvoicePanel({ invoice, onClose, onSent }) {
       {/* ── Send by postal mail ── */}
       <section className={`send-section send-section-post ${activeSection === "post" ? "open" : "collapsed"}`}>
         <button type="button" className="send-section-toggle" onClick={() => toggle("post")}>
-          <IconMail /> Send by postal mail
+        <IconMail /> {t("sendPanel.sendByPost")}
         </button>
 
         {activeSection === "post" && (
           <div className="send-section-body send-section-body-single">
-            <label className="send-field-label">Postal address</label>
+            <label className="send-field-label">{t("sendPanel.postalAddress")}</label>
             <textarea
               className="send-textarea"
               rows={3}
@@ -229,15 +256,15 @@ export default function SendInvoicePanel({ invoice, onClose, onSent }) {
               onChange={(e) => setPostAddress(e.target.value)}
             />
             <p className="send-followup-desc">
-              A printing and postage fee applies. Delivery typically takes 2–4 business days.
+            {t("sendPanel.postFeeDesc")}
             </p>
             {postError && <div className="send-field-error">{postError}</div>}
             <div className="send-actions">
               <button className="btn btn-send-sm" onClick={handleSendPost} disabled={postSending}>
-                {postSending ? "Sending…" : "Send by postal mail"}
+              {postSending ? t("sendPanel.sending") : t("sendPanel.sendByPostBtn")}
               </button>
               <button className="btn btn-cancel-sm" type="button" onClick={onClose}>
-                Cancel
+                {t("common.cancel")}
               </button>
             </div>
           </div>
@@ -247,12 +274,12 @@ export default function SendInvoicePanel({ invoice, onClose, onSent }) {
       {/* ── Send by e-invoice ── */}
       <section className={`send-section send-section-einvoice ${activeSection === "einvoice" ? "open" : "collapsed"}`}>
         <button type="button" className="send-section-toggle" onClick={() => toggle("einvoice")}>
-          <IconCloud /> Send by e-invoice
+        <IconCloud /> {t("sendPanel.sendByEInvoice")}
         </button>
 
         {activeSection === "einvoice" && (
           <div className="send-section-body send-section-body-single">
-            <label className="send-field-label">Client e-invoice reference (GLN / OVT)</label>
+            <label className="send-field-label">{t("sendPanel.eInvoiceRefLabel")}</label>
             <input
               type="text"
               className="send-text-input"
@@ -263,10 +290,10 @@ export default function SendInvoicePanel({ invoice, onClose, onSent }) {
             {eInvoiceError && <div className="send-field-error">{eInvoiceError}</div>}
             <div className="send-actions">
               <button className="btn btn-send-sm" onClick={handleSendEInvoice} disabled={eInvoiceSending}>
-                {eInvoiceSending ? "Sending…" : "Send by e-invoice"}
+              {eInvoiceSending ? t("sendPanel.sending") : t("sendPanel.sendByEInvoiceBtn")}
               </button>
               <button className="btn btn-cancel-sm" type="button" onClick={onClose}>
-                Cancel
+                {t("common.cancel")}
               </button>
             </div>
           </div>

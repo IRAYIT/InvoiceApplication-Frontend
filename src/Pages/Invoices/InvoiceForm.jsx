@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import InvoiceService from "../../services/InvoicesService";
 import ClientQuickEditModal from "../clients/ClientQuickEditModal";
 import "./InvoiceForm.css";
@@ -76,34 +77,34 @@ const IconTrash = (props) => (
 const MORE_OPTIONS = [
   {
     key: "extraFieldsLong",
-    label: "Add extra fields (long) from the customer",
+    labelKey: "invoiceForm.moreOptionsLabels.extraFieldsLong",
     defaultText: "",
     placeholder: "Extra information from the customer",
   },
   {
     key: "buyerPersonalId",
-    label: "Add the buyer personal id no.",
+    labelKey: "invoiceForm.moreOptionsLabels.buyerPersonalId",
     defaultText: "Buyer's org. no.: ",
   },
   {
     key: "buyerVat",
-    label: "Add the buyers VAT number",
+    labelKey: "invoiceForm.moreOptionsLabels.buyerVat",
     defaultText: "Buyer's VAT registration no.: ",
   },
   {
     key: "reverseCharge",
-    label: "Add reverse charge",
+    labelKey: "invoiceForm.moreOptionsLabels.reverseCharge",
     defaultText: "Buyer's VAT registration no.: \nReverse charge",
   },
   {
     key: "threePartyTrade",
-    label: "Add three-party trade",
+    labelKey: "invoiceForm.moreOptionsLabels.threePartyTrade",
     defaultText:
       "Three-party trade within the EU.\nSeller's VAT registration no.: .\nBuyer's VAT registration no.: .\nReverse charge liability / Reverse charge.",
   },
   {
     key: "rotExtraFields",
-    label: "Add the customer's extra field for ROT deduction",
+    labelKey: "invoiceForm.moreOptionsLabels.rotExtraFields",
     isGroup: true,
     fields: [
       { key: "brfOrgNo", defaultText: "Housing association org. no.: " },
@@ -113,7 +114,7 @@ const MORE_OPTIONS = [
   },
   {
     key: "taxDeduction",
-    label: "Add tax deduction for ROT / RUT / Green tech",
+    labelKey: "invoiceForm.moreOptionsLabels.taxDeduction",
     isTaxDeductionPanel: true,
   },
 ];
@@ -128,8 +129,9 @@ const ROT_GROUP_FIELD_KEYS = ["brfOrgNo", "apartmentDesignation", "propertyDesig
    popup can't be reliably restyled cross-browser) with a fully custom
    button + list, matching the same design language as the "More
    options" dropdown elsewhere on this page. */
-function PillDropdown({ icon, label, value, options, onChange }) {
-  const [open, setOpen] = useState(false);
+   function PillDropdown({ icon, label, value, options, onChange, renderOption }) {
+    const display = renderOption || ((v) => v);
+    const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
 
   useEffect(() => {
@@ -150,7 +152,7 @@ function PillDropdown({ icon, label, value, options, onChange }) {
       >
         {icon}
         <span>{label}:</span>
-        <strong className="if-pill-value">{value}</strong>
+        <strong className="if-pill-value">{display(value)}</strong>
         <IconChevronDown className={`if-pill-chevron${open ? " is-open" : ""}`} />
       </button>
 
@@ -166,7 +168,7 @@ function PillDropdown({ icon, label, value, options, onChange }) {
                 setOpen(false);
               }}
             >
-              {opt}
+              {display(opt)}
               {opt === value && <span className="if-pill-dropdown-check">✓</span>}
             </button>
           ))}
@@ -184,12 +186,13 @@ const MAX_FIELD_LENGTH = 255;
    when a "More options" entry is selected — matches the reference's
    bordered textarea with a live "x/255" character counter. */
 function ExtraFieldBox({ value, onChange, onRemove, placeholder, tall }) {
+  const { t } = useTranslation();
   return (
     <div className="if-extra-field-box">
       <button
         type="button"
         className="if-extra-field-remove"
-        aria-label="Remove this field"
+        aria-label={t("invoiceForm.removeField")}
         onClick={onRemove}
       >
         ×
@@ -305,6 +308,7 @@ export default function InvoiceForm({
   onNavigate,
   onEditClient,
 }) {
+  const { t } = useTranslation();
   const isEditMode = Boolean(invoiceId);
   const isDuplicateMode = !isEditMode && Boolean(duplicateFromId);
 
@@ -570,7 +574,7 @@ export default function InvoiceForm({
       }
     }
   } catch (err) {
-    setClientFetchError(err?.message || "Failed to load clients.");
+    setClientFetchError(err?.message || t("invoiceForm.loadClientsFailed"));
   } finally {
     setLoadingClients(false);
   }
@@ -695,7 +699,7 @@ export default function InvoiceForm({
 
   const handleCreateOrUpdate = async () => {
     if (!selectedClient?.id) {
-      setError("Please choose a client before creating the invoice.");
+      setError(t("invoiceForm.chooseClientError"));
       return;
     }
 
@@ -711,7 +715,7 @@ export default function InvoiceForm({
       onSaved && onSaved(response.data);
       onNavigate && onNavigate("invoices");
     } catch (err) {
-      setError(err?.response?.data?.message || "Failed to save the invoice. Please try again.");
+      setError(err?.response?.data?.message || t("invoiceForm.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -722,7 +726,7 @@ export default function InvoiceForm({
   if (loading) {
     return (
       <main className="if-content">
-        <div className="if-loading-state">Loading invoice…</div>
+        <div className="if-loading-state">{t("invoiceForm.loadingInvoice")}</div>
       </main>
     );
   }
@@ -731,9 +735,9 @@ export default function InvoiceForm({
     <main className="if-content">
       <div className="if-page-header">
         <div className="if-page-title">
-          {isEditMode ? "Edit" : "New"} invoice
+        {isEditMode ? t("invoiceForm.editTitle") : t("invoiceForm.newTitle")} {t("invoiceForm.invoiceWord")}
           {invoiceNumber ? ` (#${invoiceNumber})` : ""}
-          {selectedClient?.name ? ` to ${selectedClient.name}` : ""}
+          {selectedClient?.name ? ` ${t("invoiceForm.toClient", { name: selectedClient.name })}` : ""}
         </div>
       </div>
 
@@ -743,7 +747,7 @@ export default function InvoiceForm({
       <div className="if-card">
         <div className={`if-grid-row${isEditMode ? " if-with-status" : ""}`}>
           <div className="if-field if-field-large">
-            <label>Client</label>
+          <label>{t("invoiceForm.client")}</label>
             <div className="if-client-field-wrap">
               <div className="if-client-input" onClick={handleClientFieldClick}>
                 <IconCircleX className="if-client-icon" />
@@ -752,17 +756,17 @@ export default function InvoiceForm({
                     type="button"
                     className="if-client-name if-client-name-link"
                     onClick={handleClientNameClick}
-                    title="View / edit client details"
+                    title={t("invoiceForm.viewEditClient")}
                   >
                     {selectedClient.name}
                   </button>
                 ) : (
-                  <span className="if-client-name">No client selected</span>
+                  <span className="if-client-name">{t("invoiceForm.noClientSelected")}</span>
                 )}
                 <button
                   type="button"
                   className="if-client-edit"
-                  aria-label="Edit client"
+                  aria-label={t("invoiceForm.editClient")}
                   onClick={(e) => {
                     e.stopPropagation();
                     onEditClient && onEditClient();
@@ -774,14 +778,14 @@ export default function InvoiceForm({
 
               {showClientDropdown && (
                 <div className="if-client-dropdown">
-                  {loadingClients && <div className="if-client-dropdown-msg">Loading clients…</div>}
+                  {loadingClients && <div className="if-client-dropdown-msg">{t("invoiceForm.loadingClients")}</div>}
                   {clientFetchError && (
                     <div className="if-client-dropdown-msg if-client-dropdown-error">
                       {clientFetchError}
                     </div>
                   )}
                   {!loadingClients && !clientFetchError && clientList.length === 0 && (
-                    <div className="if-client-dropdown-msg">No clients found.</div>
+                    <div className="if-client-dropdown-msg">{t("invoiceForm.noClientsFound")}</div>
                   )}
                   {!loadingClients &&
                     clientList.map((c) => (
@@ -800,20 +804,20 @@ export default function InvoiceForm({
           </div>
 
           <div className="if-field">
-            <label>
-              Invoice no.
+          <label>
+              {t("invoiceForm.invoiceNo")}
               <IconHelp className="if-label-help" />
             </label>
-            <input value={invoiceNumber ?? "Assigned on save"} readOnly />
+            <input value={invoiceNumber ?? t("invoiceForm.assignedOnSave")} readOnly />
           </div>
 
           {isEditMode && (
             <div className="if-field">
-              <label>Status</label>
+              <label>{t("invoiceForm.status")}</label>
               <select value={status} onChange={(e) => setStatus(e.target.value)}>
                 {STATUS_OPTIONS.map((s) => (
                   <option key={s} value={s}>
-                    {s}
+                    {t(`invoiceForm.statusOptions.${s}`, { defaultValue: s })}
                   </option>
                 ))}
               </select>
@@ -823,7 +827,7 @@ export default function InvoiceForm({
 
         <div className="if-grid-row if-five-cols">
           <div className="if-field">
-            <label>Invoice date</label>
+          <label>{t("invoiceForm.invoiceDate")}</label>
             <div className="if-icon-input">
               <IconCalendar className="if-input-icon" />
               <input
@@ -836,19 +840,19 @@ export default function InvoiceForm({
 
 <div className="if-field">
             <label>
-              Payment terms
+              {t("invoiceForm.paymentTerms")}
               <IconHelp className="if-label-help" />
             </label>
             <select value={paymentTerms} onChange={(e) => setPaymentTerms(e.target.value)}>
-              {PAYMENT_TERMS_OPTIONS.map((t) => (
-                <option key={t} value={t}>
-                  {t}
+              {PAYMENT_TERMS_OPTIONS.map((pt) => (
+                <option key={pt} value={pt}>
+                  {t(`invoiceForm.paymentTermsOptions.${pt}`, { defaultValue: pt })}
                 </option>
               ))}
             </select>
           </div>
           <div className="if-field">
-            <label>Due date</label>
+          <label>{t("invoiceForm.dueDate")}</label>
             <div className="if-icon-input">
               <IconCalendar className="if-input-icon" />
               <input
@@ -863,7 +867,7 @@ export default function InvoiceForm({
           </div>
 
           <div className="if-field">
-            <label>Your reference</label>
+          <label>{t("invoiceForm.yourReference")}</label>
             <input
               value={yourReference}
               onChange={(e) => setYourReference(e.target.value)}
@@ -871,7 +875,7 @@ export default function InvoiceForm({
           </div>
 
           <div className="if-field">
-            <label>Our reference</label>
+          <label>{t("invoiceForm.ourReference")}</label>
             <input
               value={ourReference}
               onChange={(e) => setOurReference(e.target.value)}
@@ -882,15 +886,16 @@ export default function InvoiceForm({
         <div className="if-options-row">
           <PillDropdown
             icon={<IconGlobe className="if-pill-icon" />}
-            label="Language"
+            label={t("invoiceForm.language")}
             value={language}
             options={LANGUAGES}
             onChange={setLanguage}
+            renderOption={(v) => t(`invoiceForm.languageOptions.${v}`, { defaultValue: v })}
           />
 
           <PillDropdown
             icon={<IconDollar className="if-pill-icon" />}
-            label="Currency"
+            label={t("invoiceForm.currency")}
             value={currency}
             options={CURRENCIES}
             onChange={setCurrency}
@@ -902,14 +907,14 @@ export default function InvoiceForm({
       <div className={`if-table-card${showMoreOptions ? " if-dropdown-open" : ""}`}>
         <div className="if-table-header">
           <div className="if-col-drag" />
-          <div>DESCRIPTION</div>
-          <div>TEXT</div>
-          <div>QUANTITY</div>
-          <div>UNIT</div>
-          <div>UNIT PRICE</div>
-          <div>TAX %</div>
-          <div>DISCOUNT %</div>
-          <div>LINE TOTAL</div>
+          <div>{t("invoiceForm.table.description")}</div>
+          <div>{t("invoiceForm.table.text")}</div>
+          <div>{t("invoiceForm.table.quantity")}</div>
+          <div>{t("invoiceForm.table.unit")}</div>
+          <div>{t("invoiceForm.table.unitPrice")}</div>
+          <div>{t("invoiceForm.table.taxPercent")}</div>
+          <div>{t("invoiceForm.table.discountPercent")}</div>
+          <div>{t("invoiceForm.table.lineTotal")}</div>
           <div className="if-col-delete" />
         </div>
 
@@ -924,19 +929,19 @@ export default function InvoiceForm({
               {isTextRow ? (
                 <input
                   className="if-text-row-input"
-                  placeholder="Extra text for this invoice line"
+                  placeholder={t("invoiceForm.placeholders.extraLineText")}
                   value={row.text}
                   onChange={(e) => updateRow(row.rowKey, { text: e.target.value })}
                 />
               ) : (
                 <>
                   <input
-                    placeholder="Product name or description"
+                    placeholder={t("invoiceForm.placeholders.productDescription")}
                     value={row.description}
                     onChange={(e) => updateRow(row.rowKey, { description: e.target.value })}
                   />
                   <input
-                    placeholder="Extra information"
+                    placeholder={t("invoiceForm.placeholders.extraInfo")}
                     value={row.text}
                     onChange={(e) => updateRow(row.rowKey, { text: e.target.value })}
                   />
@@ -977,7 +982,7 @@ export default function InvoiceForm({
               <button
                 type="button"
                 className="if-row-delete"
-                aria-label="Remove row"
+                aria-label={t("invoiceForm.removeRow")}
                 onClick={() => removeRow(row.rowKey)}
               >
                 <IconCircleX />
@@ -1001,7 +1006,7 @@ export default function InvoiceForm({
             {selectedOptions.extraFieldsLong && (
               <ExtraFieldBox
                 value={optionTexts.extraFieldsLong}
-                placeholder="Extra information from the customer"
+                placeholder={t("invoiceForm.placeholders.extraInfoFromCustomer")}
                 onChange={(v) => updateOptionText("extraFieldsLong", v)}
                 onRemove={() => toggleMoreOption("extraFieldsLong")}
               />
@@ -1058,7 +1063,7 @@ export default function InvoiceForm({
             {taxDeductionApplied && (
               <div className="if-tax-deduction-panel if-tax-deduction-applied">
                 <div>
-                  <span className="if-tax-deduction-label">Preliminary tax deduction</span>
+                <span className="if-tax-deduction-label">{t("invoiceForm.preliminaryTaxDeduction")}</span>
                   <span className="if-tax-deduction-value">{taxDeductionPercent}%</span>
                 </div>
                 <button
@@ -1066,7 +1071,7 @@ export default function InvoiceForm({
                   className="if-outline-btn if-tax-deduction-remove"
                   onClick={handleRemoveTaxDeduction}
                 >
-                  <IconTrash /> Remove
+                  <IconTrash /> {t("invoiceForm.remove")}
                 </button>
               </div>
             )}
@@ -1075,7 +1080,7 @@ export default function InvoiceForm({
 
         {showTaxDeductionPanel && (
           <div className="if-tax-deduction-panel">
-            <label className="if-tax-deduction-label">Tax deduction</label>
+            <label className="if-tax-deduction-label">{t("invoiceForm.taxDeduction")}</label>
             <div className="if-tax-deduction-row">
               <select
                 className="if-tax-deduction-select"
@@ -1093,14 +1098,14 @@ export default function InvoiceForm({
                 className="if-outline-btn if-tax-deduction-confirm"
                 onClick={handleConfirmTaxDeduction}
               >
-                Add preliminary tax deduction
-              </button>
+                {t("invoiceForm.addPreliminaryTaxDeduction")}
+                </button>
               <button
                 type="button"
                 className="if-outline-btn"
                 onClick={handleCancelTaxDeduction}
               >
-                Cancel
+                {t("common.cancel")}
               </button>
             </div>
           </div>
@@ -1109,11 +1114,11 @@ export default function InvoiceForm({
         <div className="if-bottom-section">
           <div className="if-actions">
             <button type="button" className="if-outline-btn" onClick={addProductRow}>
-              <IconPlus /> New product row
+            <IconPlus /> {t("invoiceForm.newProductRow")}
             </button>
 
             <button type="button" className="if-outline-btn" onClick={addTextRow}>
-              <IconPlus /> New text row
+            <IconPlus /> {t("invoiceForm.newTextRow")}
             </button>
 
             <div className="if-more-options">
@@ -1122,7 +1127,7 @@ export default function InvoiceForm({
                 className="if-more-options-btn"
                 onClick={() => setShowMoreOptions((prev) => !prev)}
               >
-                More options (ROT/RUT etc)
+                {t("invoiceForm.moreOptions")}
                 <IconChevronDown />
               </button>
 
@@ -1148,7 +1153,7 @@ export default function InvoiceForm({
                           setShowMoreOptions(false);
                         }}
                       >
-                        {option.label}
+                        {t(option.labelKey)}
                         {isActive && <span className="if-more-options-check">✓</span>}
                       </button>
                     );
@@ -1162,17 +1167,17 @@ export default function InvoiceForm({
 
           <div className="if-summary">
             <div>
-              <span>Subtotal</span>
+            <span>{t("invoiceForm.subtotal")}</span>
               <strong>{subtotal.toFixed(2)}</strong>
             </div>
 
             <div>
-              <span>Tax</span>
-              <strong>{taxAmount.toFixed(2)}</strong>
+            <span>{t("invoiceForm.tax")}</span>
+            <strong>{taxAmount.toFixed(2)}</strong>
             </div>
 
             <div>
-              <span>Total</span>
+            <span>{t("invoiceForm.total")}</span>
               <strong>{totalAmount.toFixed(2)}</strong>
             </div>
           </div>
@@ -1187,25 +1192,25 @@ export default function InvoiceForm({
           onClick={handleCreateOrUpdate}
           disabled={saving}
         >
-          {saving ? "Saving…" : isEditMode ? "Save invoice" : "Create invoice"}
+          {saving ? t("invoiceForm.saving") : isEditMode ? t("invoiceForm.saveInvoice") : t("invoiceForm.createInvoice")}
         </button>
 
         <button type="button" className="if-cancel-btn" onClick={handleCancel} disabled={saving}>
-          Cancel
+          {t("common.cancel")}
         </button>
       </div>
 
       {/* Footer */}
       <footer className="if-footer">
-        <span>♡ FAQ</span>
-        <span>❓ Help</span>
-        <span>✉ Email us</span>
-        <span>☎ Ring oss</span>
-        <span>🕒 Mon - Thu 09:00 - 12:00</span>
+      <span>♡ {t("footer.faq")}</span>
+        <span>❓ {t("footer.help")}</span>
+        <span>✉ {t("footer.emailUs")}</span>
+        <span>☎ {t("footer.callUs")}</span>
+        <span>🕒 {t("footer.hours")}</span>
       </footer>
 
       <button type="button" className="if-help-btn">
-        ❓ Help
+        ❓ {t("footer.help")}
       </button>
 
       {showClientDetailsModal && selectedClient?.id && (

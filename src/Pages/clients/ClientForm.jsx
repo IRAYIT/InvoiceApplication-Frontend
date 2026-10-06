@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import ClientService from "../../services/ClientService";
 import COUNTRIES from "../../constants/countries";
 import "./ClientForm.css";
 
 function ClientForm({ onCancel, onCreated }) {
+  const { t } = useTranslation();
   const [showDetails, setShowDetails] = useState(false);
   const [addressTab, setAddressTab] = useState("billing");
   const [submitting, setSubmitting] = useState(false);
@@ -99,7 +101,7 @@ function ClientForm({ onCancel, onCreated }) {
       const created = await ClientService.createClient(formData);
       onCreated && onCreated(created);
     } catch (err) {
-      setError("Failed to create client. Please check the form and try again.");
+      setError(t("clients.form.createFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -130,8 +132,7 @@ function ClientForm({ onCancel, onCreated }) {
         <div className="top-grid">
           {/* General */}
           <div className="section-block">
-            <h3 className="section-title">General</h3>
-
+          <h3 className="section-title">{t("clients.form.general")}</h3>
             <div className="radio-group">
               <label className="radio-option">
                 <input
@@ -139,8 +140,8 @@ function ClientForm({ onCancel, onCreated }) {
                   name="clientType"
                   checked={formData.clientType === "company"}
                   onChange={() => updateField("clientType", "company")}
-                />
-                Company
+                  />
+                {t("clients.form.company")}
               </label>
               <label className="radio-option">
                 <input
@@ -148,15 +149,15 @@ function ClientForm({ onCancel, onCreated }) {
                   name="clientType"
                   checked={formData.clientType === "person"}
                   onChange={() => updateField("clientType", "person")}
-                />
-                Person
+                  />
+                {t("clients.form.person")}
               </label>
             </div>
 
             {formData.clientType === "company" ? (
               <>
                 <div className="field">
-                  <label>Company name</label>
+                <label>{t("clients.form.companyName")}</label>
                   <input
                     type="text"
                     value={formData.company}
@@ -166,7 +167,7 @@ function ClientForm({ onCancel, onCreated }) {
 
                 <div className="field-row">
                   <div className="field">
-                    <label>Company reg. no.</label>
+                  <label>{t("clients.form.companyRegNo")}</label>
                     <input
                       type="text"
                       value={formData.companyRegNo}
@@ -174,7 +175,7 @@ function ClientForm({ onCancel, onCreated }) {
                     />
                   </div>
                   <div className="field">
-                    <label>VAT no.</label>
+                  <label>{t("clients.form.vatNo")}</label>
                     <input
                       type="text"
                       value={formData.vatNo}
@@ -187,7 +188,7 @@ function ClientForm({ onCancel, onCreated }) {
               <>
                 <div className="field-row">
                   <div className="field">
-                    <label>First name</label>
+                  <label>{t("clients.form.firstName")}</label>
                     <input
                       type="text"
                       value={formData.firstName}
@@ -195,7 +196,7 @@ function ClientForm({ onCancel, onCreated }) {
                     />
                   </div>
                   <div className="field">
-                    <label>Last name</label>
+                  <label>{t("clients.form.lastName")}</label>
                     <input
                       type="text"
                       value={formData.lastName}
@@ -205,7 +206,7 @@ function ClientForm({ onCancel, onCreated }) {
                 </div>
 
                 <div className="field">
-                  <label>Personal id no.</label>
+                <label>{t("clients.form.personalIdNo")}</label>
                   <input
                     type="text"
                     value={formData.personalIdNo}
@@ -216,7 +217,7 @@ function ClientForm({ onCancel, onCreated }) {
             )}
 
             <div className="field">
-              <label>Email</label>
+            <label>{t("clients.form.email")}</label>
               <input
                 type="email"
                 value={formData.email}
@@ -226,7 +227,7 @@ function ClientForm({ onCancel, onCreated }) {
 
             <div className="field">
               <label>
-                Send invoices by <span className="tooltip-icon">?</span>
+              {t("clients.form.sendInvoicesBy")} <span className="tooltip-icon">?</span>
               </label>
               <div className="radio-group">
                 <label className="radio-option">
@@ -235,8 +236,8 @@ function ClientForm({ onCancel, onCreated }) {
                     name="sendBy"
                     checked={formData.settings.invoiceDeliveryMethod === "email"}
                     onChange={() => updateSettingsField("invoiceDeliveryMethod", "email")}
-                  />
-                  Email
+                    />
+                  {t("clients.form.email")}
                 </label>
                 <label className="radio-option">
                   <input
@@ -244,8 +245,8 @@ function ClientForm({ onCancel, onCreated }) {
                     name="sendBy"
                     checked={formData.settings.invoiceDeliveryMethod === "epost_sms"}
                     onChange={() => updateSettingsField("invoiceDeliveryMethod", "epost_sms")}
-                  />
-                  E-post + SMS
+                    />
+                  {t("clients.form.deliveryEmailSms")}
                 </label>
                 <label className="radio-option">
                   <input
@@ -253,8 +254,8 @@ function ClientForm({ onCancel, onCreated }) {
                     name="sendBy"
                     checked={formData.settings.invoiceDeliveryMethod === "letter"}
                     onChange={() => updateSettingsField("invoiceDeliveryMethod", "letter")}
-                  />
-                  Letter
+                    />
+                  {t("clients.form.deliveryLetter")}
                 </label>
                 <label className="radio-option">
                   <input
@@ -262,8 +263,8 @@ function ClientForm({ onCancel, onCreated }) {
                     name="sendBy"
                     checked={formData.settings.invoiceDeliveryMethod === "e_invoice"}
                     onChange={() => updateSettingsField("invoiceDeliveryMethod", "e_invoice")}
-                  />
-                  E-invoice
+                    />
+                  {t("clients.form.deliveryEInvoice")}
                 </label>
               </div>
             </div>
@@ -274,35 +275,35 @@ function ClientForm({ onCancel, onCreated }) {
                 checked={formData.settings.emailAttachPdf}
                 onChange={(e) => updateSettingsField("emailAttachPdf", e.target.checked)}
               />
-              Always attach a PDF copy in emails <span className="tooltip-icon">?</span>
+              {t("clients.form.attachPdf")} <span className="tooltip-icon">?</span>
             </label>
           </div>
 
           {/* Address */}
           <div className="section-block">
-            <h3 className="section-title">Address</h3>
+          <h3 className="section-title">{t("clients.form.address")}</h3>
 
             <div className="address-tabs">
               <button
                 type="button"
                 className={`address-tab ${addressTab === "billing" ? "active" : ""}`}
                 onClick={() => setAddressTab("billing")}
-              >
-                Billing address
+                >
+                {t("clients.form.billingAddress")}
               </button>
               <button
                 type="button"
                 className={`address-tab ${addressTab === "delivery" ? "active" : ""}`}
                 onClick={() => setAddressTab("delivery")}
-              >
-                Delivery address
+                >
+                {t("clients.form.deliveryAddress")}
               </button>
             </div>
 
             {addressTab === "billing" ? (
               <>
                 <div className="field">
-                  <label>C/O</label>
+                <label>{t("clients.form.careOf")}</label>
                   <input
                     type="text"
                     value={formData.address.careOf}
@@ -310,7 +311,7 @@ function ClientForm({ onCancel, onCreated }) {
                   />
                 </div>
                 <div className="field">
-                  <label>Address</label>
+                <label>{t("clients.form.address")}</label>
                   <input
                     type="text"
                     value={formData.address.streetAddress}
@@ -319,7 +320,7 @@ function ClientForm({ onCancel, onCreated }) {
                 </div>
                 <div className="field-row">
                   <div className="field">
-                    <label>Zip code</label>
+                  <label>{t("clients.form.zipCode")}</label>
                     <input
                       type="text"
                       value={formData.address.zipCode}
@@ -327,7 +328,7 @@ function ClientForm({ onCancel, onCreated }) {
                     />
                   </div>
                   <div className="field">
-                    <label>City</label>
+                  <label>{t("clients.form.city")}</label>
                     <input
                       type="text"
                       value={formData.address.city}
@@ -336,7 +337,7 @@ function ClientForm({ onCancel, onCreated }) {
                   </div>
                 </div>
                 <div className="field">
-                  <label>Country</label>
+                <label>{t("clients.form.country")}</label>
                   <select
                     value={formData.address.country}
                     onChange={(e) => updateAddressField("address", "country", e.target.value)}
@@ -406,10 +407,10 @@ function ClientForm({ onCancel, onCreated }) {
             <div className="middle-grid">
               {/* Contact information */}
               <div className="section-block">
-                <h3 className="section-title">Contact information</h3>
+              <h3 className="section-title">{t("clients.form.contactInformation")}</h3>
 
                 <div className="field">
-                  <label>Website</label>
+                <label>{t("clients.form.website")}</label>
                   <input
                     type="text"
                     value={formData.website}
@@ -418,7 +419,7 @@ function ClientForm({ onCancel, onCreated }) {
                 </div>
                 <div className="field-row">
                   <div className="field">
-                    <label>Phone (mobile)</label>
+                  <label>{t("clients.form.phoneMobile")}</label>
                     <input
                       type="tel"
                       value={formData.phoneMobile}
@@ -426,7 +427,7 @@ function ClientForm({ onCancel, onCreated }) {
                     />
                   </div>
                   <div className="field">
-                    <label>Phone (home)</label>
+                  <label>{t("clients.form.phoneHome")}</label>
                     <input
                       type="tel"
                       value={formData.phoneHome}
@@ -435,7 +436,7 @@ function ClientForm({ onCancel, onCreated }) {
                   </div>
                 </div>
                 <div className="field">
-                  <label>Fax</label>
+                <label>{t("clients.form.fax")}</label>
                   <input
                     type="text"
                     value={formData.fax}
@@ -446,7 +447,7 @@ function ClientForm({ onCancel, onCreated }) {
 
               {/* New invoice settings */}
               <div className="section-block">
-                <h3 className="section-title">New invoice settings</h3>
+              <h3 className="section-title">{t("clients.form.newInvoiceSettings")}</h3>
 
                 <div className="setting-row">
                   <label className="setting-checkbox">
@@ -454,8 +455,8 @@ function ClientForm({ onCancel, onCreated }) {
                       type="checkbox"
                       checked={settingsEnabled.paymentTermsDays}
                       onChange={() => toggleSettingEnabled("paymentTermsDays")}
-                    />
-                    Payment terms
+                      />
+                    {t("clients.form.paymentTerms")}
                   </label>
                   <div className="setting-input-wrap">
                     <input
@@ -465,7 +466,7 @@ function ClientForm({ onCancel, onCreated }) {
                       disabled={!settingsEnabled.paymentTermsDays}
                       placeholder="30"
                     />
-                    <span className="unit">days</span>
+                    <span className="unit">{t("clients.form.days")}</span>
                   </div>
                 </div>
                 <div className="setting-row">
@@ -474,8 +475,8 @@ function ClientForm({ onCancel, onCreated }) {
                       type="checkbox"
                       checked={settingsEnabled.invoiceLanguage}
                       onChange={() => toggleSettingEnabled("invoiceLanguage")}
-                    />
-                    Language
+                      />
+                    {t("clients.form.language")}
                   </label>
                   <div className="setting-input-wrap">
                     <select
@@ -483,8 +484,8 @@ function ClientForm({ onCancel, onCreated }) {
                       onChange={(e) => updateNestedField("invoiceSettings", "invoiceLanguage", e.target.value)}
                       disabled={!settingsEnabled.invoiceLanguage}
                     >
-                      <option>Swedish</option>
-                      <option>English</option>
+                      <option value="Swedish">{t("clients.form.swedish")}</option>
+                      <option value="English">{t("clients.form.english")}</option>
                     </select>
                   </div>
                 </div>
@@ -494,8 +495,8 @@ function ClientForm({ onCancel, onCreated }) {
                       type="checkbox"
                       checked={settingsEnabled.currency}
                       onChange={() => toggleSettingEnabled("currency")}
-                    />
-                    Currency
+                      />
+                    {t("clients.form.currency")}
                   </label>
                   <div className="setting-input-wrap">
                     <select
@@ -516,8 +517,8 @@ function ClientForm({ onCancel, onCreated }) {
                       type="checkbox"
                       checked={settingsEnabled.defaultVatPercent}
                       onChange={() => toggleSettingEnabled("defaultVatPercent")}
-                    />
-                    VAT for new rows
+                      />
+                    {t("clients.form.vatForNewRows")}
                   </label>
                   <div className="setting-input-wrap">
                     <input
@@ -536,8 +537,8 @@ function ClientForm({ onCancel, onCreated }) {
                       type="checkbox"
                       checked={settingsEnabled.defaultDiscountPercent}
                       onChange={() => toggleSettingEnabled("defaultDiscountPercent")}
-                    />
-                    Discount
+                      />
+                    {t("clients.form.discount")}
                   </label>
                   <div className="setting-input-wrap">
                     <input
@@ -558,10 +559,10 @@ function ClientForm({ onCancel, onCreated }) {
             <div className="bottom-grid">
               {/* Client information */}
               <div className="section-block">
-                <h3 className="section-title">Client information</h3>
+              <h3 className="section-title">{t("clients.form.clientInformation")}</h3>
                 <div className="field">
                   <label>
-                    Number <span className="tooltip-icon">?</span>
+                  {t("clients.form.number")} <span className="tooltip-icon">?</span>
                   </label>
                   <input
                     type="text"
@@ -573,10 +574,10 @@ function ClientForm({ onCancel, onCreated }) {
 
               {/* ROT deduction */}
               <div className="section-block">
-                <h3 className="section-title">Extra field for ROT deduction</h3>
+              <h3 className="section-title">{t("clients.form.rotTitle")}</h3>
                 <div className="field-row">
                   <div className="field">
-                    <label>Apartment designation</label>
+                  <label>{t("clients.form.apartmentDesignation")}</label>
                     <input
                       type="text"
                       value={formData.rotInfo.apartmentDesignation}
@@ -584,7 +585,7 @@ function ClientForm({ onCancel, onCreated }) {
                     />
                   </div>
                   <div className="field">
-                    <label>Property designation</label>
+                  <label>{t("clients.form.propertyDesignation")}</label>
                     <input
                       type="text"
                       value={formData.rotInfo.propertyDesignation}
@@ -593,7 +594,7 @@ function ClientForm({ onCancel, onCreated }) {
                   </div>
                 </div>
                 <div className="field">
-                  <label>Assoc. corp ID no.</label>
+                <label>{t("clients.form.assocCorpIdNo")}</label>
                   <input
                     type="text"
                     value={formData.rotInfo.assocCorpIdNo}
@@ -613,7 +614,7 @@ function ClientForm({ onCancel, onCreated }) {
             className={`toggle-link ${showDetails ? "is-open" : ""}`}
             onClick={() => setShowDetails(!showDetails)}
           >
-            {showDetails ? "Hide detailed settings" : "Show detailed settings"}
+            {showDetails ? t("clients.form.hideDetails") : t("clients.form.showDetails")}
             <span className="chevron" aria-hidden="true" />
           </button>
         </div>
@@ -625,13 +626,13 @@ function ClientForm({ onCancel, onCreated }) {
             onClick={handleCreateClient}
             disabled={submitting}
           >
-            {submitting ? "Creating..." : "Create client"}
+            {submitting ? t("clients.form.creating") : t("clients.form.createClient")}
           </button>
           <button
             className="btn-outline"
             onClick={() => onCancel && onCancel()}
-          >
-            Cancel
+            >
+            {t("common.cancel")}
           </button>
         </div>
       </div>

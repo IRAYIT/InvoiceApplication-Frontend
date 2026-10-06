@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import InvoiceService from "../../services/InvoicesService";
 import "./ManageInvoices.css";
 import PaymentModal from "./PaymentModal";
@@ -78,10 +79,10 @@ const IconCreditNote = (props) => (
 
 /* ── Status presentation — order controls which sections render first ── */
 const STATUS_META = {
-  OVERDUE: { label: "Overdue", className: "status-overdue" },
-  UNPAID: { label: "Unpaid", className: "status-unpaid" },
-  PAID: { label: "Paid", className: "status-paid" },
-  DRAFT: { label: "Draft", className: "status-draft" },
+  OVERDUE: { labelKey: "invoices.status.overdue", className: "status-overdue" },
+  UNPAID: { labelKey: "invoices.status.unpaid", className: "status-unpaid" },
+  PAID: { labelKey: "invoices.status.paid", className: "status-paid" },
+  DRAFT: { labelKey: "invoices.status.draft", className: "status-draft" },
 };
 const STATUS_ORDER = ["OVERDUE", "UNPAID", "PAID", "DRAFT"];
 
@@ -120,6 +121,7 @@ const mapInvoice = (inv) => ({
 });
 
 export default function ManageInvoices({ onNavigate, invoices: invoicesProp, clientId }) {
+  const { t } = useTranslation();
   const [invoices, setInvoices] = useState((invoicesProp || []).map(mapInvoice));
   const [loading, setLoading] = useState(!invoicesProp);
   const [error, setError] = useState(null);
@@ -146,7 +148,7 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp, cli
         setInvoices(list.map(mapInvoice));
       })
       .catch((err) => {
-        if (!cancelled) setError(err?.response?.data?.message || "Failed to load invoices.");
+        if (!cancelled) setError(err?.response?.data?.message || t("invoices.errors.loadFailed"));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -250,7 +252,7 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp, cli
       await InvoiceService.deleteInvoice(id);
       setInvoices((prev) => prev.filter((inv) => inv.id !== id));
     } catch (err) {
-      setError(err?.response?.data?.message || "Failed to delete the invoice.");
+      setError(err?.response?.data?.message || t("invoices.errors.deleteFailed"));
     }
   };
 
@@ -264,16 +266,10 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp, cli
     onNavigate && onNavigate("clientDetail", inv.clientId);
   };
 
-  const handleViewPdf = async (inv) => {
+  const handleViewPdf = (inv) => {
     setOpenMenuId(null);
     setActionError(null);
-    try {
-      const { data } = await InvoiceService.downloadInvoicePdf(inv.id);
-      const url = window.URL.createObjectURL(new Blob([data], { type: "application/pdf" }));
-      window.open(url, "_blank", "noopener,noreferrer");
-    } catch (err) {
-      setActionError(err?.response?.data?.message || "Failed to open the PDF.");
-    }
+    onNavigate && onNavigate("viewInvoice", inv.id, { autoPrint: true });
   };
 
   const handleDuplicateClick = (inv) => {
@@ -313,9 +309,9 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp, cli
     return (
       <main className="content">
         <div className="page-header">
-          <h1>Invoices</h1>
+        <h1>{t("invoices.title")}</h1>
         </div>
-        <div className="loading-state">Loading invoices…</div>
+        <div className="loading-state">{t("invoices.loading")}</div>
       </main>
     );
   }
@@ -345,18 +341,18 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp, cli
             className="btn btn-primary"
             onClick={() => onNavigate && onNavigate("newInvoice")}
           >
-            <IconInvoiceDoc />
-            New invoice
+                        <IconInvoiceDoc />
+            {t("invoices.newInvoice")}
           </button>
-          <button className="btn btn-outline">Report / export</button>
+          <button className="btn btn-outline">{t("invoices.reportExport")}</button>
         </div>
 
         <div className="center-nav">
-          <button onClick={() => setYear((y) => y - 1)} aria-label="Previous year">
+          <button onClick={() => setYear((y) => y - 1)} aria-label={t("invoices.previousYear")}>
             {"‹"}
           </button>
           <div className="month-box">{year}</div>
-          <button onClick={() => setYear((y) => y + 1)} aria-label="Next year">
+          <button onClick={() => setYear((y) => y + 1)} aria-label={t("invoices.nextYear")}>
             {"›"}
           </button>
         </div>
@@ -367,7 +363,7 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp, cli
           <input type="text" value={rangeEnd} readOnly className="date-input" />
           <input
             type="text"
-            placeholder="Search"
+            placeholder={t("invoices.searchPlaceholder")}
             className="search-input"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -377,30 +373,30 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp, cli
 
       <div className="invoice-area">
         {groups.length === 0 ? (
-          <div className="empty-state">
-            <p>No invoices to show</p>
-            <a href="/">Read more about invoices here.</a>
-          </div>
-        ) : (
-          groups.map((group) => (
-            <section className={`status-group ${group.meta.className}`} key={group.key}>
-              <div className="status-summary">
-                <div className="status-label">{group.meta.label}</div>
-                <div className="status-amount">{formatKr(group.total)}</div>
-                <div className="status-vat">of which VAT {formatKr(group.vat)}</div>
-              </div>
-
-              <div className="status-table">
-                <div className="status-table-header">
-                  <div>#</div>
-                  <div>CLIENT</div>
-                  <div>TOTAL</div>
-                  <div>DUE DATE</div>
-                  <div>PAID</div>
-                  <div>SENT</div>
-                  <div className="auto-col">
-                    AUTO <IconHelp />
+                    <div className="empty-state">
+                    <p>{t("invoices.empty.title")}</p>
+                    <a href="/">{t("invoices.empty.link")}</a>
                   </div>
+                ) : (
+                  groups.map((group) => (
+                    <section className={`status-group ${group.meta.className}`} key={group.key}>
+                      <div className="status-summary">
+                        <div className="status-label">{t(group.meta.labelKey)}</div>
+                        <div className="status-amount">{formatKr(group.total)}</div>
+                        <div className="status-vat">{t("invoices.ofWhichVat", { amount: formatKr(group.vat) })}</div>
+                      </div>
+        
+                      <div className="status-table">
+                        <div className="status-table-header">
+                          <div>{t("invoices.table.number")}</div>
+                          <div>{t("invoices.table.client")}</div>
+                          <div>{t("invoices.table.total")}</div>
+                          <div>{t("invoices.table.dueDate")}</div>
+                          <div>{t("invoices.table.paid")}</div>
+                          <div>{t("invoices.table.sent")}</div>
+                          <div className="auto-col">
+                            {t("invoices.table.auto")} <IconHelp />
+                          </div>
                   <div className="menu-col" />
                 </div>
 
@@ -445,7 +441,7 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp, cli
                         <button
                           type="button"
                           className="row-menu-btn"
-                          aria-label="Row actions"
+                          aria-label={t("invoices.rowActions.label")}
                           onClick={() => setOpenMenuId((prev) => (prev === inv.id ? null : inv.id))}
                         >
                           <IconGear />
@@ -454,20 +450,20 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp, cli
 
                         {openMenuId === inv.id && (
                           <div className="row-menu-dropdown">
-                            <button type="button" onClick={() => handleGoToClient(inv)}>
-                              <IconClient /> Go to client
+                                                        <button type="button" onClick={() => handleGoToClient(inv)}>
+                              <IconClient /> {t("invoices.rowActions.goToClient")}
                             </button>
                             <button type="button" onClick={() => handleViewPdf(inv)}>
-                              <IconPrint /> View as PDF (Print)
+                              <IconPrint /> {t("invoices.rowActions.viewPdf")}
                             </button>
                             <button type="button" onClick={() => handleDuplicateClick(inv)}>
-                              <IconDuplicate /> Duplicate
+                              <IconDuplicate /> {t("invoices.rowActions.duplicate")}
                             </button>
                             <button type="button" onClick={() => handleSendClick(inv)}>
-                              <IconMail /> Send the invoice
+                              <IconMail /> {t("invoices.rowActions.send")}
                             </button>
                             <button type="button" onClick={() => handleCredit(inv)}>
-                              <IconCreditNote /> Credit/Partial credit
+                              <IconCreditNote /> {t("invoices.rowActions.credit")}
                             </button>
                             <button
                               type="button"
@@ -476,14 +472,14 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp, cli
                                 onNavigate && onNavigate("editInvoice", inv.id);
                               }}
                             >
-                              Edit
+                              {t("invoices.rowActions.edit")}
                             </button>
                             <button
                               type="button"
                               className="row-menu-danger"
                               onClick={() => handleDeleteInvoice(inv.id)}
                             >
-                              Delete
+                              {t("invoices.rowActions.delete")}
                             </button>
                           </div>
                         )}
@@ -506,22 +502,22 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp, cli
           ))
         )}
 
-        <div className="summary">
-          {filteredInvoices.length} invoice{filteredInvoices.length === 1 ? "" : "s"} in SEK:{" "}
-          <strong>{formatKr(overallTotal)}</strong> (incl. VAT: <strong>{formatKr(overallVat)}</strong>) Net:{" "}
+<div className="summary">
+          {t("invoices.summaryCount", { count: filteredInvoices.length })}
+          <strong>{formatKr(overallTotal)}</strong> ({t("invoices.inclVat")} <strong>{formatKr(overallVat)}</strong>) {t("invoices.net")}{" "}
           <strong>{formatKr(overallNet)}</strong>
         </div>
       </div>
 
       <footer className="footer">
-        <span>♡ FAQ</span>
-        <span>❓ Help</span>
-        <span>✉ Email us</span>
-        <span>☎ Ring oss</span>
-        <span>🕒 Mon - Thu 09:00 - 12:00</span>
+        <span>♡ {t("invoices.footer.faq")}</span>
+        <span>❓ {t("invoices.footer.help")}</span>
+        <span>✉ {t("invoices.footer.emailUs")}</span>
+        <span>☎ {t("invoices.footer.callUs")}</span>
+        <span>🕒 {t("invoices.footer.hours")}</span>
       </footer>
 
-      <button className="help-btn">❓ Help</button>
+      <button className="help-btn">❓ {t("invoices.footer.help")}</button>
 
       {paymentModalInvoice && (
         <PaymentModal
@@ -533,7 +529,7 @@ export default function ManageInvoices({ onNavigate, invoices: invoicesProp, cli
 
       {duplicateConfirmInvoice && (
         <ConfirmDialog
-          message="Do you want to start a new invoice with the content of this as a starting point?"
+        message={t("invoices.duplicateConfirmMessage")}
           onCancel={() => setDuplicateConfirmInvoice(null)}
           onConfirm={handleConfirmDuplicate}
         />

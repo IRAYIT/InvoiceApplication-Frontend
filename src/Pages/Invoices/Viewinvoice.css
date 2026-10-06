@@ -40,6 +40,9 @@
   gap: 28px;
   align-items: start;
   padding-right: 32px;
+  background: #eceef1;
+  border-radius: 8px;
+  padding: 32px 32px 32px 0;
 }
 
 /* ── Invoice document ────────────────────────────────────── */
@@ -47,7 +50,13 @@
   background: #fff;
   border: 1px solid #e6e8ec;
   border-radius: 4px;
-  padding: 32px 36px 28px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  padding: 40px 48px;
+  width: 210mm;
+  max-width: 100%;
+  min-height: 297mm;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .invoice-doc-header {
@@ -76,7 +85,7 @@
 .invoice-meta-box {
   flex: 1.4;
   border: 1px solid #e6e8ec;
-  border-radius: 4px;
+  border-radius: 6px;
   padding: 16px 18px;
 }
 
@@ -135,7 +144,7 @@
 .invoice-address-box {
   flex: 1;
   border: 1px solid #e6e8ec;
-  border-radius: 4px;
+  border-radius: 6px;
   overflow: hidden;
   align-self: flex-start;
 }
@@ -244,7 +253,7 @@
   display: flex;
   gap: 40px;
   border: 1px solid #e6e8ec;
-  border-radius: 4px;
+  border-radius: 6px;
   padding: 14px 18px;
   font-size: 13px;
 }
@@ -269,7 +278,7 @@
   align-items: center;
   gap: 14px;
   border: 1px solid #e6e8ec;
-  border-radius: 4px;
+  border-radius: 6px;
   padding: 14px 18px;
 }
 
@@ -537,6 +546,16 @@
 .history-empty {
   font-size: 13px;
   color: #8a8f96;
+}
+.send-banner-success {
+  margin: 12px 0;
+  padding: 12px 16px;
+  border: 1px solid #b7e4c7;
+  border-radius: 6px;
+  background-color: #d8f3dc;
+  color: #1b4332;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 @media (max-width: 900px) {

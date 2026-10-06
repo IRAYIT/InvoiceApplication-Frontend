@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import InvoiceService from "../../services/InvoicesService";
 import "./PaymentModal.css";
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
 export default function PaymentModal({ invoice, onClose, onSaved }) {
+  const { t } = useTranslation();
   const startingRemaining = Math.max(
     Number(invoice.total || 0) - Number(invoice.amountPaid || 0),
     0
@@ -41,7 +43,7 @@ export default function PaymentModal({ invoice, onClose, onSaved }) {
     setError(null);
     const amt = Number(amountPaid);
     if (!amt || amt <= 0) {
-      setError("Enter an amount greater than 0.");
+      setError(t("paymentModal.errors.amountRequired"));
       return;
     }
     setSaving(true);
@@ -54,7 +56,7 @@ export default function PaymentModal({ invoice, onClose, onSaved }) {
       onSaved(data); // InvoicePaymentSummaryDTO
       onClose();
     } catch (err) {
-      setError(err?.response?.data?.message || "Failed to save payment.");
+      setError(err?.response?.data?.message || t("paymentModal.errors.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -63,10 +65,10 @@ export default function PaymentModal({ invoice, onClose, onSaved }) {
   return (
     <div className="payment-modal-overlay" onClick={onClose}>
       <div className="payment-modal" onClick={(e) => e.stopPropagation()}>
-        <h2>Add new payment</h2>
-        <div className="payment-modal-invoice">Invoice #{invoice.invoiceNumber}</div>
+      <h2>{t("paymentModal.title")}</h2>
+      <div className="payment-modal-invoice">{t("paymentModal.invoiceHash", { number: invoice.invoiceNumber })}</div>
 
-        <label htmlFor="pm-date">When was the payment made?</label>
+      <label htmlFor="pm-date">{t("paymentModal.whenPaid")}</label>
         <input
           id="pm-date"
           type="date"
@@ -74,7 +76,7 @@ export default function PaymentModal({ invoice, onClose, onSaved }) {
           onChange={(e) => setPaymentDate(e.target.value)}
         />
 
-        <label htmlFor="pm-amount">Amount paid (SEK)</label>
+        <label htmlFor="pm-amount">{t("paymentModal.amountPaid")}</label>
         <input
           id="pm-amount"
           type="number"
@@ -85,39 +87,39 @@ export default function PaymentModal({ invoice, onClose, onSaved }) {
         />
 
         <label className="payment-modal-checkbox">
-          <input type="checkbox" checked={cash} onChange={(e) => setCash(e.target.checked)} />
-          Cash
+        <input type="checkbox" checked={cash} onChange={(e) => setCash(e.target.checked)} />
+          {t("paymentModal.cash")}
         </label>
 
         <hr />
 
-        <h3>Payment history</h3>
+        <h3>{t("paymentModal.history")}</h3>
         {loadingHistory ? (
-          <p className="payment-history-empty">Loading…</p>
+          <p className="payment-history-empty">{t("paymentModal.loading")}</p>
         ) : history.length === 0 ? (
-          <p className="payment-history-empty">No payments have been added yet.</p>
+          <p className="payment-history-empty">{t("paymentModal.empty")}</p>
         ) : (
           <ul className="payment-history-list">
             {history.map((p) => (
               <li key={p.id}>
-                {p.paymentDate} — {Number(p.amountPaid).toFixed(2)} kr {p.cash ? "(cash)" : ""}
+                {p.paymentDate} — {Number(p.amountPaid).toFixed(2)} kr {p.cash ? t("paymentModal.cashSuffix") : ""}
               </li>
             ))}
           </ul>
         )}
 
         <div className="payment-modal-remaining">
-          Remaining: <strong>{remaining.toFixed(2)} kr</strong>
+        {t("paymentModal.remaining")} <strong>{remaining.toFixed(2)} kr</strong>
         </div>
 
         {error && <div className="payment-modal-error">{error}</div>}
 
         <div className="payment-modal-actions">
           <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
-            {saving ? "Saving…" : "Save"}
+          {saving ? t("invoiceForm.saving") : t("paymentModal.save")}
           </button>
           <button className="btn btn-outline" onClick={onClose} disabled={saving}>
-            Cancel
+            {t("common.cancel")}
           </button>
         </div>
       </div>

@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import { useTranslation } from "react-i18next";
 import InvoiceService from "../../services/InvoicesService";
 import "./ViewInvoice.css";
 import PaymentModal from "./PaymentModal";
-import SendInvoicePanel from "./SendInvoicePanel";
+import SendInvoicePanel from "./Sendinvoicepanel";
 import ConfirmDialog from "./ConfirmDialog";
 import companyLogo from "../../assets/logo192.png";
 
@@ -67,23 +70,23 @@ const formatHistoryTimestamp = (iso) => {
 // Maps InvoiceExtraFieldDTO.key back to the readable label shown in
 // InvoiceForm's "More options" dropdown, so ViewInvoice doesn't just
 // display the raw camelCase key.
-const EXTRA_FIELD_LABELS = {
-  extraFieldsLong: "Extra information from the customer",
-  buyerPersonalId: "Buyer personal id no.",
-  buyerVat: "Buyer's VAT number",
-  reverseCharge: "Reverse charge",
-  threePartyTrade: "Three-party trade",
-  brfOrgNo: "Housing association org. no.",
-  apartmentDesignation: "Apartment designation",
-  propertyDesignation: "Property designation",
+const EXTRA_FIELD_LABEL_KEYS = {
+  extraFieldsLong: "viewInvoice.extraFieldLabels.extraFieldsLong",
+  buyerPersonalId: "viewInvoice.extraFieldLabels.buyerPersonalId",
+  buyerVat: "viewInvoice.extraFieldLabels.buyerVat",
+  reverseCharge: "viewInvoice.extraFieldLabels.reverseCharge",
+  threePartyTrade: "viewInvoice.extraFieldLabels.threePartyTrade",
+  brfOrgNo: "viewInvoice.extraFieldLabels.brfOrgNo",
+  apartmentDesignation: "viewInvoice.extraFieldLabels.apartmentDesignation",
+  propertyDesignation: "viewInvoice.extraFieldLabels.propertyDesignation",
 };
-const extraFieldLabel = (key) => EXTRA_FIELD_LABELS[key] || key;
 
 // Brand name shown in the "sent via" footer box — matches the reference
 // design's "Denna faktura skickades via Fakturan.nu." branding line.
 const BRAND_NAME = "Invoice Application";
 
-export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigate }) {
+export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigate, autoPrint }) {
+  const { t } = useTranslation();
   const [invoice, setInvoice] = useState(invoiceProp || null);
   const [loading, setLoading] = useState(!invoiceProp);
   const [error, setError] = useState(null);
@@ -91,13 +94,18 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [sendPanelOpen, setSendPanelOpen] = useState(false);
   const [duplicateConfirmOpen, setDuplicateConfirmOpen] = useState(false);
+  const invoiceDocRef = useRef(null);
+  const [paymentHistory, setPaymentHistory] = useState([]);
+  const [paymentHistoryLoading, setPaymentHistoryLoading] = useState(false);
+  const [paymentHistoryError, setPaymentHistoryError] = useState(null);
+  const [sendSuccessMessage, setSendSuccessMessage] = useState("");
 
   const id = invoiceProp?.id ?? invoiceId;
 
   useEffect(() => {
     if (invoiceProp) return;
     if (!id) {
-      setError("No invoice was specified.");
+      setError(t("invoiceForm.noInvoiceSpecified"));
       setLoading(false);
       return;
     }
@@ -112,7 +120,7 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
         setInvoice(data);
       })
       .catch((err) => {
-        if (!cancelled) setError(err?.response?.data?.message || "Failed to load the invoice.");
+        if (!cancelled) setError(err?.response?.data?.message || t("viewInvoice.loadFailed"));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -123,6 +131,53 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, invoiceProp]);
+
+  useEffect(() => {
+    if (!id) return;
+  
+    let cancelled = false;
+  
+    const fetchPaymentHistory = async () => {
+      setPaymentHistoryLoading(true);
+      setPaymentHistoryError(null);
+  
+      try {
+        const { data } = await InvoiceService.getPayments(id);
+  
+        if (cancelled) return;
+  
+        // Adjust this based on your actual backend response
+        const payments = Array.isArray(data)
+          ? data
+          : data?.payments || [];
+  
+        setPaymentHistory(payments);
+      } catch (err) {
+        if (!cancelled) {
+          setPaymentHistoryError(
+            err?.response?.data?.message ||
+            t("viewInvoice.paymentHistoryLoadFailed")
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setPaymentHistoryLoading(false);
+        }
+      }
+    };
+  
+    fetchPaymentHistory();
+  
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  useEffect(() => {
+    if (autoPrint && invoice && !loading) {
+      handleViewPdf();
+    }
+  }, [autoPrint, loading]);
 
   const handlePaidCheckbox = () => {
     if (invoice.status === "PAID") return;
@@ -135,6 +190,10 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
       status: summary.status,
       amountPaid: summary.totalPaid,
     }));
+  
+    // Update payment history immediately after saving
+    setPaymentHistory(summary.payments || []);
+  
     setPaymentModalOpen(false);
   };
 
@@ -152,7 +211,7 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
       setInvoice(data); // server's version — includes the new history entry
     } catch (err) {
       setInvoice((prev) => ({ ...prev, status: prevStatus }));
-      setActionError(err?.response?.data?.message || "Failed to update the invoice.");
+      setActionError(err?.response?.data?.message || t("viewInvoice.updateFailed"));
     }
   };
 
@@ -161,24 +220,78 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
   };
 
   const handleInvoiceSent = ({ method, target }) => {
+    const methodLabelKey =
+      method === "EMAIL"
+        ? "viewInvoice.methodLabels.email"
+        : method === "POST"
+        ? "viewInvoice.methodLabels.post"
+        : "viewInvoice.methodLabels.eInvoice";
+    const methodLabel = t(methodLabelKey);
+    if (method === "EMAIL") {
+      setSendSuccessMessage(t("sendPanel.emailSentTo", { email: target }));
+    } else if (method === "POST") {
+      setSendSuccessMessage(t("sendPanel.postQueued"));
+    } else if (method === "E_INVOICE") {
+      setSendSuccessMessage(t("sendPanel.eInvoiceSentTo", { ref: target }));
+    }
     setInvoice((prev) => ({
       ...prev,
       status: prev.status === "DRAFT" ? "SENT" : prev.status,
       history: [
-        { label: `Sent by ${method === "EMAIL" ? "e-mail" : method === "POST" ? "postal mail" : "e-invoice"} to ${target}`, timestamp: new Date().toISOString() },
+        {
+          label: t("viewInvoice.sentByTo", { method: methodLabel, target }),
+          timestamp: new Date().toISOString(),
+        },
         ...(prev.history || []),
       ],
     }));
+    setSendPanelOpen(false);
   };
 
   const handleViewPdf = async () => {
     setActionError(null);
+    const pdfWindow = window.open("", "_blank");
+    if (pdfWindow) {
+      pdfWindow.document.write(t("viewInvoice.generatingPdf"));
+    }
+
+    const node = invoiceDocRef.current;
+    if (!node) return;
+
     try {
-      const { data } = await InvoiceService.downloadInvoicePdf(invoice.id);
-      const url = window.URL.createObjectURL(new Blob([data], { type: "application/pdf" }));
-      window.open(url, "_blank", "noopener,noreferrer");
+      const canvas = await html2canvas(node, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+
+      const pdf = new jsPDF({ unit: "pt", format: "a4" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      if (imgHeight <= pageHeight) {
+        pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+      } else {
+        const scale = pageHeight / imgHeight;
+        pdf.addImage(imgData, "PNG", 0, 0, imgWidth * scale, pageHeight);
+      }
+
+      const blobUrl = pdf.output("bloburl");
+
+      if (pdfWindow) {
+        pdfWindow.location.href = blobUrl;
+      } else {
+        pdf.save(`invoice-${invoice.invoiceNumber || invoice.id}.pdf`);
+      }
     } catch (err) {
-      setActionError(err?.response?.data?.message || "Failed to open the PDF.");
+      console.error(err);
+      if (pdfWindow) pdfWindow.close();
+      setActionError(t("viewInvoice.pdfFailed"));
     }
   };
 
@@ -205,7 +318,7 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
   if (loading) {
     return (
       <main className="content">
-        <div className="loading-state">Loading invoice…</div>
+        <div className="loading-state">{t("invoiceForm.loadingInvoice")}</div>
       </main>
     );
   }
@@ -213,7 +326,7 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
   if (error || !invoice) {
     return (
       <main className="content">
-        <div className="error-state">{error || "Invoice not found."}</div>
+        <div className="error-state">{error || t("viewInvoice.notFound")}</div>
       </main>
     );
   }
@@ -234,6 +347,15 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
   const vatRate = items[0]?.taxPercent ?? 25;
 
   const history = invoice.history || [];
+
+  const paymentEvents = paymentHistory.map((payment) => ({
+    label: t("viewInvoice.paymentReceived", {
+      amount: `${Number(payment.amountPaid || 0).toFixed(2)}${payment.cash ? ` ${t("paymentModal.cashSuffix")}` : ""}`,
+    }),
+    timestamp: payment.createdAt || payment.paymentDate || "",
+    type: "PAYMENT",
+    id: payment.id,
+  }));
   const extraFields = invoice.extraFields || [];
   const taxDeductionApplied = Boolean(invoice.taxDeductionApplied);
   const isPaid = invoice.status === "PAID";
@@ -241,7 +363,14 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
 
   return (
     <main className="content invoice-view">
-      <h1 className="invoice-page-title">Invoice #{invoice.invoiceNumber}</h1>
+      <h1 className="invoice-page-title">
+        {t("viewInvoice.title", { number: invoice.invoiceNumber })}
+      </h1>
+      {sendSuccessMessage && (
+        <div className="send-banner send-banner-success">
+          {sendSuccessMessage}
+        </div>
+      )}
 
       {sendPanelOpen && (
         <SendInvoicePanel
@@ -253,9 +382,9 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
 
       <div className="invoice-view-grid">
         {/* ── Invoice document ─────────────────────────────── */}
-        <section className="invoice-doc">
+        <section className="invoice-doc" ref={invoiceDocRef}>
           <div className="invoice-doc-header">
-            <h1 className="invoice-doc-title">INVOICE</h1>
+          <h1 className="invoice-doc-title">{t("viewInvoice.docTitle")}</h1>
           </div>
 
           <div className="invoice-meta-row">
@@ -263,23 +392,23 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
               <div className="meta-box-columns">
                 <div className="meta-fields-col">
                   <div className="meta-line">
-                    <span>Invoice no.</span>
+                  <span>{t("viewInvoice.meta.invoiceNo")}</span>
                     <strong>{invoice.invoiceNumber}</strong>
                   </div>
                   <div className="meta-line">
-                    <span>Client no.</span>
+                  <span>{t("viewInvoice.meta.clientNo")}</span>
                     <strong>{invoice.clientNumber ?? invoice.clientId}</strong>
                   </div>
                   <div className="meta-line">
-                    <span>Invoice date</span>
+                  <span>{t("viewInvoice.meta.invoiceDate")}</span>
                     <strong>{invoice.invoiceDate}</strong>
                   </div>
                   <div className="meta-line">
-                    <span>Payment terms</span>
-                    <strong>{invoice.paymentTerms || "Net 30"}</strong>
+                  <span>{t("viewInvoice.meta.paymentTerms")}</span>
+                  <strong>{invoice.paymentTerms || t("invoiceForm.paymentTermsOptions.Net 30")}</strong>
                   </div>
                   <div className="meta-line">
-                    <span>Payment due</span>
+                  <span>{t("viewInvoice.meta.paymentDue")}</span>
                     <strong>{invoice.dueDate}</strong>
                   </div>
                 </div>
@@ -287,24 +416,24 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
                 <div className="meta-refs-col">
                   {invoice.yourReference && (
                     <div className="meta-reference-block">
-                      <span className="meta-reference-label">Your reference</span>
+                      <span className="meta-reference-label">{t("viewInvoice.meta.yourReference")}</span>
                       <div className="meta-reference-value">{invoice.yourReference}</div>
                     </div>
                   )}
                   {invoice.ourReference && (
                     <div className="meta-reference-block">
-                      <span className="meta-reference-label">Our reference</span>
+                      <span className="meta-reference-label">{t("viewInvoice.meta.ourReference")}</span>
                       <div className="meta-reference-value">{invoice.ourReference}</div>
                     </div>
                   )}
                 </div>
               </div>
 
-              <p className="meta-note">Interest will be charged on overdue payments</p>
+              <p className="meta-note">{t("viewInvoice.interestNote")}</p>
             </div>
 
             <div className="invoice-address-box">
-              <div className="address-label">Bill to</div>
+            <div className="address-label">{t("clients.detail.billTo")}</div>
               <div className="address-body">
                 <strong>{invoice.clientName}</strong>
                 {(invoice.billingAddressLines || []).map((line, i) => (
@@ -317,10 +446,10 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
           <table className="invoice-items-table">
             <thead>
               <tr>
-                <th>Product / Service</th>
-                <th>Quantity</th>
-                <th>Price per unit</th>
-                <th>Total</th>
+              <th>{t("viewInvoice.table.product")}</th>
+                <th>{t("viewInvoice.table.quantity")}</th>
+                <th>{t("viewInvoice.table.pricePerUnit")}</th>
+                <th>{t("viewInvoice.table.total")}</th>
               </tr>
             </thead>
             <tbody>
@@ -346,19 +475,19 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
 
           <div className="invoice-totals">
             <div className="totals-line">
-              <span>Net:</span>
+            <span>{t("viewInvoice.totals.net")}</span>
               <span>{formatKr(net)}</span>
             </div>
             <div className="totals-line">
-              <span>VAT {vatRate}% (calculated on {formatKr(net)}):</span>
+            <span>{t("viewInvoice.totals.vatCalculated", { rate: vatRate, net: formatKr(net) })}</span>
               <span>{formatKr(vatAmount)}</span>
             </div>
             <div className="totals-line">
-              <span>Rounding:</span>
+            <span>{t("viewInvoice.totals.rounding")}</span>
               <span>{formatKr(rounding)}</span>
             </div>
             <div className="totals-line totals-grand">
-              <span>Total Due:</span>
+            <span>{t("viewInvoice.totals.totalDue")}</span>
               <span>{formatKr(grandTotal)}</span>
             </div>
           </div>
@@ -370,13 +499,13 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
             <div className="invoice-extra-fields">
               {extraFields.map((field, i) => (
                 <div className="extra-field-line" key={i}>
-                  <span className="extra-field-label">{extraFieldLabel(field.key)}</span>
+                  <span className="extra-field-label">{t(EXTRA_FIELD_LABEL_KEYS[field.key] || field.key, { defaultValue: field.key })}</span>
                   <div className="extra-field-text">{field.text}</div>
                 </div>
               ))}
               {taxDeductionApplied && (
                 <div className="extra-field-line">
-                  <span className="extra-field-label">Preliminary tax deduction</span>
+                  <span className="extra-field-label">{t("invoiceForm.preliminaryTaxDeduction")}</span>
                   <div className="extra-field-text">{invoice.taxDeductionPercent}%</div>
                 </div>
               )}
@@ -386,13 +515,13 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
           <div className="invoice-footer-boxes">
             <div className="footer-box">
               <div className="footer-col">
-                <div className="footer-label">Address</div>
+              <div className="footer-label">{t("viewInvoice.footer.address")}</div>
                 <div>{invoice.companyAddress}</div>
               </div>
               <div className="footer-col">
-                <div className="footer-label">Company Email</div>
+              <div className="footer-label">{t("viewInvoice.footer.companyEmail")}</div>
                 <div>{invoice.companyEmail}</div>
-                {invoice.approvedForFTax && <div className="footer-note">Approved for F-tax</div>}
+                {invoice.approvedForFTax && <div className="footer-note">{t("viewInvoice.footer.approvedForFTax")}</div>}
               </div>
             </div>
 
@@ -403,9 +532,9 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
               <img src={companyLogo} alt="Company logo" className="footer-brand-icon" />
               <div className="footer-brand-text">
                 <div>
-                  This invoice was sent via <strong>{BRAND_NAME}</strong>.
+                {t("viewInvoice.footer.sentVia", { brand: BRAND_NAME })}
                 </div>
-                <div>Simple and free invoicing directly from the web.</div>
+                <div>{t("viewInvoice.footer.tagline")}</div>
               </div>
             </div>
           </div>
@@ -419,29 +548,29 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
             className={`btn btn-send ${isSent ? "btn-send-sent" : ""}`}
             onClick={handleSendInvoiceClick}
           >
-            Send the invoice
-          </button>
+            {t("invoices.rowActions.send")}
+            </button>
 
           {!(isPaid && isSent) && (
             <button className="btn btn-outline" onClick={() => onNavigate && onNavigate("editInvoice", invoice.id)}>
-              Edit invoice
-            </button>
+              {t("viewInvoice.editInvoice")}
+              </button>
           )}
 
           <nav className="sidebar-links">
             <button type="button" onClick={handleViewPdf}>
-              <IconPrint /> View as PDF (Print)
+            <IconPrint /> {t("invoices.rowActions.viewPdf")}
             </button>
             <button type="button" onClick={handleDuplicateClick}>
-              <IconDuplicate /> Duplicate
+            <IconDuplicate /> {t("invoices.rowActions.duplicate")}
             </button>
             <button type="button" onClick={handleCredit}>
-              <IconTrash /> Credit/Partial credit
+            <IconTrash /> {t("invoices.rowActions.credit")}
             </button>
           </nav>
 
           <button type="button" className="sidebar-link go-to-client" onClick={handleGoToClient}>
-            <IconClient /> Go to client
+          <IconClient /> {t("invoices.rowActions.goToClient")}
           </button>
 
           <div className="sidebar-flags">
@@ -455,27 +584,62 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
                 }}
                 onChange={() => {}}
               />
-              Paid
-            </label>
+              {t("viewInvoice.paid")}
+              </label>
             <label>
               <input type="checkbox" checked={isSent} onChange={handleSentToggle} />
-              Sent
+              {t("viewInvoice.sent")}
             </label>
           </div>
 
           <div className="sidebar-history">
             <div className="history-heading">
-              <IconHistory /> History
+            <IconHistory /> {t("viewInvoice.history")}
             </div>
-            {history.length === 0 ? (
-              <p className="history-empty">No history yet.</p>
+
+            {paymentHistoryLoading ? (
+              <p className="history-empty">
+              {t("viewInvoice.loadingPaymentHistory")}
+            </p>
+            ) : paymentHistoryError ? (
+              <p className="history-empty">
+                {paymentHistoryError}
+              </p>
+            ) : history.length === 0 && paymentEvents.length === 0 ? (
+              <p className="history-empty">
+                {t("viewInvoice.noHistory")}
+              </p>
             ) : (
-              history.map((event, i) => (
-                <div className="history-entry" key={i}>
-                  <div className="history-label">{event.label}</div>
-                  <div className="history-timestamp">{formatHistoryTimestamp(event.timestamp)}</div>
-                </div>
-              ))
+              <>
+                {/* Existing invoice history */}
+                {history.map((event, i) => (
+                  <div className="history-entry" key={`history-${i}`}>
+                    <div className="history-label">
+                      {event.label}
+                    </div>
+
+                    <div className="history-timestamp">
+                      {formatHistoryTimestamp(event.timestamp)}
+                    </div>
+                  </div>
+                ))}
+
+                {/* Payment history */}
+                {paymentEvents.map((event, i) => (
+                  <div
+                    className="history-entry"
+                    key={`payment-${event.id ?? i}`}
+                  >
+                    <div className="history-label">
+                      {event.label}
+                    </div>
+
+                    <div className="history-timestamp">
+                      {formatHistoryTimestamp(event.timestamp)}
+                    </div>
+                  </div>
+                ))}
+              </>
             )}
           </div>
         </aside>
@@ -491,7 +655,7 @@ export default function ViewInvoice({ invoiceId, invoice: invoiceProp, onNavigat
 
       {duplicateConfirmOpen && (
         <ConfirmDialog
-          message="Do you want to start a new invoice with the content of this as a starting point?"
+        message={t("invoices.duplicateConfirmMessage")}
           onCancel={() => setDuplicateConfirmOpen(false)}
           onConfirm={handleConfirmDuplicate}
         />
