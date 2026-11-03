@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   FiHome,
@@ -11,10 +11,13 @@ import {
   FiPieChart,
   FiSettings,
   FiChevronDown,
+  FiKey,
+  FiLogOut,
 } from "react-icons/fi";
 
 import logo from "../assets/images/i-ray-logo.png";
 import LanguageSwitcher from "./LanguageSwitcher";
+import { useAuth } from "../Pages/auth/authContext";
 import "./Sidebar.css";
 
 const menuItems = [
@@ -36,6 +39,22 @@ const availablePages = ["clients", "invoices", "estimates", "orders", "products"
 
 const Sidebar = ({ activePage, onNavigate }) => {
   const { t } = useTranslation();
+  const { user, logout, logoutAll } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const profileRef = useRef(null);
+
+  // close the profile menu when clicking anywhere else
+  useEffect(() => {
+    const close = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, []);
+
+  const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(" ");
+  const initials =
+    `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.toUpperCase() || "?";
   return (
     <div className="sidebar">
      {/* Logo */}
@@ -69,14 +88,50 @@ const Sidebar = ({ activePage, onNavigate }) => {
         <LanguageSwitcher />
       </div>
 
-      {/* User Profile */}
-      <div className="profile">
-        <div className="avatar">BY</div>
-        <div className="profile-info">
-          <span>Bindu Y</span>
-        </div>
+            {/* User Profile */}
+        <div className="profile-wrap" ref={profileRef}>
+        {menuOpen && (
+          <div className="profile-menu" role="menu">
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setMenuOpen(false);
+                onNavigate("changePassword");
+              }}
+            >
+              <FiKey /> {t("auth.changePassword")}
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setMenuOpen(false);
+                logoutAll();
+              }}
+            >
+              <FiLogOut /> {t("auth.logOutEverywhere")}
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setMenuOpen(false);
+                logout();
+              }}
+            >
+              <FiLogOut /> {t("auth.logOut")}
+            </button>
+          </div>
+        )}
 
-        <FiChevronDown className="dropdown-icon" />
+        <div className="profile" onClick={() => setMenuOpen((open) => !open)}>
+          <div className="avatar">{initials}</div>
+          <div className="profile-info">
+            <span>{fullName || user?.email}</span>
+          </div>
+          <FiChevronDown className="dropdown-icon" />
+        </div>
       </div>
     </div>
   );

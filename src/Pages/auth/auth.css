@@ -1,0 +1,345 @@
+/* ===== Logged-out screens (login, register, verify, forgot / reset) ===== */
+.auth-page {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+    font-family: "Inter", "Segoe UI", sans-serif;
+    background: #f7f8fa;
+  }
+  
+  .auth-brand {
+    width: 400px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 48px 40px;
+    color: #a9c0d0;
+    background: linear-gradient(180deg, #0f2c3f 0%, #0b2230 100%);
+  }
+  
+  .auth-logo {
+    width: 148px;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+  }
+  
+  .auth-brand-accent {
+    width: 44px;
+    height: 3px;
+    border-radius: 2px;
+    margin: 16px 0 40px;
+    background: linear-gradient(90deg, #3f7fe0 0%, #f5c518 100%);
+  }
+  
+  .auth-brand h2 {
+    color: #ffffff;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 12px;
+  }
+  
+  .auth-brand p {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  
+  .auth-lang {
+    margin-top: auto;
+    width: 100%;
+    max-width: 180px;
+  }
+  
+  .auth-main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+  }
+  
+  .auth-card {
+    width: 100%;
+    max-width: 440px;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 36px 34px;
+    box-shadow: 0 10px 30px -12px rgba(15, 44, 63, 0.25), 0 2px 6px rgba(15, 44, 63, 0.06);
+  }
+  
+  .auth-card h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f2c3f;
+    margin-bottom: 6px;
+  }
+  
+  .auth-subtitle {
+    color: #5f7384;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 22px;
+  }
+  
+  /* ===== Form pieces (also used by the in-app change password page) ===== */
+  .auth-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  
+  .auth-field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #25404f;
+  }
+  
+  .auth-field input {
+    height: 42px;
+    width: 100%;
+    border: 1px solid #cfd9e0;
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 14.5px;
+    font-family: inherit;
+    background: #ffffff;
+    color: #0f2c3f;
+  }
+  
+  .auth-field input:focus {
+    border-color: #38a8b5;
+  }
+  
+  .auth-name-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  
+  .auth-password {
+    position: relative;
+  }
+  
+  .auth-password input {
+    padding-right: 44px;
+  }
+  
+  .auth-eye {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 0;
+    border-radius: 6px;
+    color: #6b8191;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  
+  .auth-eye:hover {
+    color: #1b8aa5;
+    background: #eef4f7;
+  }
+  
+  .auth-hint {
+    font-size: 12px;
+    color: #6b8191;
+  }
+  
+  .auth-code input {
+    text-align: center;
+    letter-spacing: 10px;
+    font-size: 24px;
+    font-weight: 700;
+    height: 52px;
+  }
+  
+  .auth-terms {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 4px 0 16px;
+    font-size: 13.5px;
+    line-height: 1.4;
+    color: #25404f;
+    cursor: pointer;
+  }
+  
+  .auth-terms input {
+    margin-top: 2px;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+  
+  .auth-primary {
+    width: 100%;
+    height: 44px;
+    margin-top: 6px;
+    border: 0;
+    border-radius: 8px;
+    background: #1b8aa5;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  
+  .auth-primary:hover:not(:disabled) {
+    background: #167790;
+  }
+  
+  .auth-link {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: #1b8aa5;
+    font-size: inherit;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  
+  .auth-link:hover:not(:disabled) {
+    text-decoration: underline;
+  }
+  
+  .auth-link:disabled {
+    color: #94a7b4;
+    cursor: not-allowed;
+  }
+  
+  .auth-row {
+    display: flex;
+    justify-content: flex-end;
+    margin: -6px 0 14px;
+    font-size: 13px;
+  }
+  
+  .auth-row-center {
+    justify-content: center;
+    margin: 16px 0 0;
+  }
+  
+  .auth-footer {
+    margin-top: 22px;
+    text-align: center;
+    font-size: 14px;
+    color: #5f7384;
+  }
+  
+  .auth-error,
+  .auth-notice {
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 16px;
+    font-size: 13.5px;
+    line-height: 1.45;
+  }
+  
+  .auth-error {
+    background: #fdecec;
+    border: 1px solid #f5c2c2;
+    color: #a12626;
+  }
+  
+  .auth-notice {
+    background: #e8f6f0;
+    border: 1px solid #b9e3d1;
+    color: #17694a;
+  }
+  
+  /* ===== Loading screen while the session is restored ===== */
+  .auth-loading {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f7f8fa;
+  }
+  
+  .auth-spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid #d5e3ea;
+    border-top-color: #1b8aa5;
+    border-radius: 50%;
+    animation: auth-spin 0.8s linear infinite;
+  }
+  
+  @keyframes auth-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  /* ===== Change password page (inside the app) ===== */
+  .account-page {
+    flex: 1;
+    padding: 32px 40px;
+  }
+  
+  .account-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #0f2c3f;
+    margin-bottom: 20px;
+  }
+  
+  .account-card {
+    max-width: 520px;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 28px 30px;
+    box-shadow: 0 4px 18px -8px rgba(15, 44, 63, 0.2), 0 1px 3px rgba(15, 44, 63, 0.06);
+  }
+  
+  .account-email {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1b8aa5;
+    margin-bottom: 6px;
+  }
+  
+  /* ===== Small screens: stack the brand panel on top ===== */
+  @media (max-width: 860px) {
+    .auth-page {
+      flex-direction: column;
+    }
+  
+    .auth-brand {
+      width: 100%;
+      padding: 20px 24px;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+    }
+  
+    .auth-brand-accent,
+    .auth-brand h2,
+    .auth-brand p {
+      display: none;
+    }
+  
+    .auth-lang {
+      margin: 0 0 0 auto;
+      width: 150px;
+    }
+  
+    .auth-name-row {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+  }

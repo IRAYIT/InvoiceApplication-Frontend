@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "https://invoice-app-iray-gvctcjhfe6gzf0cc.centralindia-01.azurewebsites.net/api/v1/time-reports";
+const API_BASE_URL = "https://invoice-app-iray.azurewebsites.net/api/v1/time-reports";
 
 const TimeReportService = {
   getReportsByClientId: (clientId) => axios.get(`${API_BASE_URL}/client/${clientId}`),

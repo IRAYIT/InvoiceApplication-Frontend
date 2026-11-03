@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { authFetch } from "../../services/authClient";
 import InvoiceService from "../../services/InvoicesService";
 import ClientQuickEditModal from "../clients/ClientQuickEditModal";
 import "./InvoiceForm.css";
@@ -545,7 +546,7 @@ export default function InvoiceForm({
   setClientFetchError(null);
 
   try {
-    const res = await fetch("https://invoice-app-iray-gvctcjhfe6gzf0cc.centralindia-01.azurewebsites.net/api/v1/clients");
+    const res = await authFetch("https://invoice-app-iray.azurewebsites.net/api/v1/clients");
 
     if (!res.ok) {
       throw new Error(`Request failed with status ${res.status}`);

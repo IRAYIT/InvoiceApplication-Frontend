@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import EstimateService from "../../services/EstimateService";
+import { authFetch } from "../../services/authClient";
 import ClientQuickEditModal from "../clients/ClientQuickEditModal";
 import "./EstimateForm.css";
 import { createPortal } from "react-dom";
@@ -386,7 +387,7 @@ export default function EstimateForm({
     setLoadingClients(true);
     setClientFetchError(null);
     try {
-      const res = await fetch("https://invoice-app-iray-gvctcjhfe6gzf0cc.centralindia-01.azurewebsites.net/api/v1/clients");
+      const res = await authFetch("https://invoice-app-iray.azurewebsites.net/api/v1/clients");
       if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
       const data = await res.json();
       const list = Array.isArray(data) ? data : data?.content ?? [];

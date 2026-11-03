@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "https://invoice-app-iray-gvctcjhfe6gzf0cc.centralindia-01.azurewebsites.net/api/v1/client-contacts";
+const API_URL = "https://invoice-app-iray.azurewebsites.net/api/v1/client-contacts";
 
 const ClientContactService = {
 

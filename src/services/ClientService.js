@@ -1,6 +1,7 @@
 import axios from "axios";
+import { attachAuth } from "./authClient";
 
-const API_BASE_URL = "https://invoice-app-iray-gvctcjhfe6gzf0cc.centralindia-01.azurewebsites.net/api/v1/clients";
+const API_BASE_URL = "https://invoice-app-iray.azurewebsites.net/api/v1/clients";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -8,6 +9,8 @@ const apiClient = axios.create({
     "Content-Type": "application/json",
   },
 });
+// this service uses its own axios instance, so give it the login token too
+attachAuth(apiClient);
 
 const ClientService = {
   getAllClients: async () => {

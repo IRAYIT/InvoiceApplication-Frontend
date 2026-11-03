@@ -1,5 +1,8 @@
 import { useState } from "react";
 import Sidebar from "./Components/Sidebar";
+import { useAuth } from "./Pages/auth/authContext";
+import AuthGate from "./Pages/auth/AuthGate";
+import ChangePassword from "./Pages/auth/ChangePassword";
 
 import ManageClients from "./Pages/clients/ManageClients";
 import ClientForm from "./Pages/clients/ClientForm";
@@ -42,6 +45,19 @@ function App() {
   const [selectedInvoiceId, setSelectedInvoiceId] = useState(initialRoute?.id ?? null);
   const [pendingInvoiceClient, setPendingInvoiceClient] = useState(null);
   const [pendingOrderClient, setPendingOrderClient] = useState(null);
+  const { user, loading } = useAuth();
+
+    // Not logged in yet: show the login / register screens instead of the app.
+    if (loading) {
+      return (
+        <div className="auth-loading" role="status">
+          <div className="auth-spinner" />
+        </div>
+      );
+    }
+    if (!user) {
+      return <AuthGate />;
+    }
 
 
   const navigate = (page, id = null, extra = null) => {
@@ -128,6 +144,8 @@ function App() {
         return <ProductDetail onNavigate={navigate} />;
       case "productDetail":
         return <ProductDetail productId={selectedProductId} onNavigate={navigate} />;
+      case "changePassword":
+        return <ChangePassword />;
 
       default:
         return <ManageInvoices onNavigate={navigate} />;
